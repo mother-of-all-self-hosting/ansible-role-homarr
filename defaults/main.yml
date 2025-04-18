@@ -7,20 +7,18 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-# Project source code URL: https://github.com/httpjamesm/Homarr
+# Project source code URL: https://github.com/homarr-labs/homarr
 
 homarr_enabled: true
 
 homarr_identifier: homarr
 homarr_base_path: "{{ homarr_identifier }}"
 
-# Only "release" tag is available
-homarr_version: release
+homarr_version: v1.17.0
 
 homarr_uid: ''
 homarr_gid: ''
 
-# Specify URI scheme for homarr_base_url.
 homarr_scheme: https
 
 # The hostname at which Homarr is served.
@@ -33,11 +31,7 @@ homarr_hostname: ''
 # technical limitations.
 homarr_path_prefix: /
 
-# Public facing base URL of the Homarr service.
-# It should not end with a slash.
-homarr_base_url: "{{ homarr_scheme }}://{{ homarr_hostname }}{{ '' if homarr_path_prefix == '/' else homarr_path_prefix }}"
-
-homarr_container_image: "{{ homarr_container_image_registry_prefix }}httpjamesm/homarr:{{ homarr_container_image_tag }}"
+homarr_container_image: "{{ homarr_container_image_registry_prefix }}homarr-labs/homarr:{{ homarr_container_image_tag }}"
 homarr_container_image_tag: "{{ homarr_version }}"
 homarr_container_image_registry_prefix: "{{ homarr_container_image_registry_prefix_upstream }}"
 homarr_container_image_registry_prefix_upstream: "{{ homarr_container_image_registry_prefix_upstream_default }}"
@@ -53,7 +47,7 @@ homarr_container_http_host_bind_port: ''
 homarr_container_network: "{{ homarr_identifier }}"
 
 # The port number in the container
-homarr_container_http_port: 8080
+homarr_container_http_port: 7575
 
 # A list of additional container networks that the container would be connected to.
 # The role does not create these networks, so make sure they already exist.
@@ -166,8 +160,38 @@ homarr_systemd_required_services_list_custom: []
 # List of systemd services that the Homarr systemd service wants
 homarr_systemd_wanted_services_list: []
 
-homarr_environment_variable_app_url: "{{ homarr_base_url }}"
-homarr_environment_variable_jwt_signing_secret: 'secret'
+# Specify secret key (required for Auth.js)
+homarr_environment_variables_auth_secret: supersecret
+
+# Specify 32-byte hex digits to encrypt integration secrets in the database,
+# generated with `openssl rand -hex 32` or in another way.
+homarr_environment_variables_secret_encryption_key: ''
+
+# Specify log level
+homarr_environment_variables_log_level: info
+
+# Specify a database driver to use
+# Valid values: better-sqlite3, mysql2
+homarr_environment_variables_db_driver: better-sqlite3
+
+# Specify a path to sqlite3 database file
+homarr_environment_variables_db_url: ''
+
+# Specify database configuration for mysql2
+homarr_environment_variables_db_host: localhost
+homarr_environment_variables_db_port: 3306
+homarr_environment_variables_db_user: username
+homarr_environment_variables_db_password: password
+homarr_environment_variables_db_name: homarr
+
+# Specify path to store trusted certificates during development
+homarr_environment_variables_local_certificate_path: ''
+
+# Control if turbo telemetry is disabled
+homarr_environment_variables_turbo_telemetry_disabled: 1
+
+# Control if kubernetes tool is enabled
+homarr_environment_variables_enable_kubernetes: false
 
 # Additional environment variables.
 homarr_environment_variables_additional_variables: ''

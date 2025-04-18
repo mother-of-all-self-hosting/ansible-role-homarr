@@ -24,19 +24,31 @@ Environment="HOME={{ devture_systemd_docker_base_systemd_unit_home_path }}"
 ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ devture_systemd_docker_base_container_stop_grace_time_seconds }} {{ homarr_identifier }} 2>/dev/null || true'
 ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ homarr_identifier }} 2>/dev/null || true'
 
+{#
+  PUID and PGID are specified on env.j2 to run the container as homarr_uid:homarr_gid
+  See: https://homarr.dev/docs/1.10.0/advanced/running-as-different-user/
+#}
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --rm \
       --name={{ homarr_identifier }} \
       --log-driver=none \
-      --user={{ homarr_uid }}:{{ homarr_gid }} \
       --cap-drop=ALL \
-      --read-only \
+      --cap-add=CAP_DAC_OVERRIDE \
+      --cap-add=CHOWN \
+      --cap-add=SETUID \
+      --cap-add=SETGID \
+      --cap-add=NET_BIND_SERVICE \
       --network={{ homarr_container_network }} \
       {% if homarr_container_http_host_bind_port %}
       -p {{ homarr_container_http_host_bind_port }}:{{ homarr_container_http_port }} \
       {% endif %}
       --env-file={{ homarr_base_path }}/env \
       --label-file={{ homarr_base_path }}/labels \
+      --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+      --mount type=bind,src={{ homarr_data_path }},dst=/appdata/ \
+      {% for volume in homarr_container_additional_volumes %}
+      --mount type={{ volume.type | default('bind' if '/' in volume.src else 'volume') }},src={{ volume.src }},dst={{ volume.dst }}{{ (',' + volume.options) if volume.options else '' }} \
+      {% endfor %}
       {% for arg in homarr_container_extra_arguments %}
       {{ arg }} \
       {% endfor %}

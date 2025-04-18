@@ -16,6 +16,8 @@
     - homarr_hostname
     - homarr_path_prefix
     - homarr_container_network
+    - homarr_data_path
+    - homarr_environment_variables_secret_encryption_key
 
 - when: homarr_container_labels_traefik_enabled | bool
   block:
