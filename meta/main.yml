@@ -3,7 +3,7 @@ galaxy_info:
   company: progressiv
   role_name: anonymousoverflow
   namespace: progressiv
-  description: AnonymousOverflow
+  description: Homarr
   platforms:
     - name: Debian
       versions:
