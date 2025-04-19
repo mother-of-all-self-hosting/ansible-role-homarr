@@ -58,6 +58,29 @@ After adjusting the hostname, make sure to adjust your DNS records to point the 
 
 **Note**: hosting Homarr under a subpath (by configuring the `homarr_path_prefix` variable) does not seem to be possible due to Homarr's technical limitations.
 
+### Set 32-byte hex digits for secret key
+
+You also need to specify **32-byte hex digits** to encrypt integration secrets on the database. To do so, add the following configuration to your `vars.yml` file. The value can be generated with `openssl rand -hex 32` or in another way.
+
+```yaml
+homarr_environment_variables_secret_encryption_key: YOUR_SECRET_KEY_HERE
+```
+
+>[!NOTE]
+> Other type of values such as one generated with `pwgen -s 64 1` does not work.
+
+### Mount a directory for storing data
+
+The service requires a Docker volume to be mounted, so that the directory for storing files is shared with the host machine.
+
+To add the volume, prepare a directory on the host machine and add the following configuration to your `vars.yml` file, setting the directory path to `src`:
+
+```yaml
+homarr_data_path: /path/on/the/host
+```
+
+Make sure permissions of the directory specified to `src` (`/path/on/the/host`).
+
 ### Extending the configuration
 
 There are some additional things you may wish to configure about the component.
@@ -66,7 +89,7 @@ Take a look at:
 
 - [`defaults/main.yml`](../defaults/main.yml) for some variables that you can customize via your `vars.yml` file. You can override settings (even those that don't have dedicated playbook variables) using the `homarr_environment_variables_additional_variables` variable
 
-For a complete list of Homarr's config options that you could put in `homarr_environment_variables_additional_variables`, see its [`docker-compose.example.yml`](https://github.com/httpjamesm/Homarr/blob/main/docker-compose.example.yml).
+See [here](https://homarr.dev/docs/advanced/environment-variables/) for a complete list of Homarr's config options that you could put in `homarr_environment_variables_additional_variables`.
 
 ## Installing
 
