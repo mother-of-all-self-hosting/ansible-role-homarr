@@ -18,13 +18,11 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Setting up Homarr
 
-This is an [Ansible](https://www.ansible.com/) role which installs [Homarr](https://github.com/httpjamesm/Homarr) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
+This is an [Ansible](https://www.ansible.com/) role which installs [Homarr](https://homarr.dev) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
 
-Homarr allows you to view StackOverflow threads without exposing your IP address, browsing habits, and other browser fingerprinting data to the website.
+Homarr is a highly customizable dashboard for managing your favorite applications and services with a drag-and-drop grid system. It also integrates with various self-hosted applications.
 
-See the project's [documentation](https://github.com/httpjamesm/Homarr/blob/main/README.md) to learn what Homarr does and why it might be useful to you.
-
-[<img src="assets/home_dark.webp" title="Home screen in dark mode" width="600">](assets/home_dark.webp) [<img src="assets/question_dark.webp" title="Question in dark mode" width="600">](assets/question_dark.webp) [<img src="assets/answers_light.webp" title="Answer in light mode" width="600">](assets/answers_light.webp)
+See the project's [documentation](https://homarr.dev/docs/getting-started) to learn what Homarr does and why it might be useful to you.
 
 ## Adjusting the playbook configuration
 
