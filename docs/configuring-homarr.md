@@ -81,6 +81,19 @@ homarr_data_path: /path/on/the/host
 
 Make sure permissions of the directory specified to `src` (`/path/on/the/host`).
 
+### Use a database compatible with MySQL2 (optional)
+
+By default the service adopts `better-sqlite3` as a database driver, which stores a SQLite database in the mounted directory.
+
+Alternatively, it is possible to use a database compatible with [MySQL2](https://sidorares.github.io/node-mysql2/docs), a MySQL client for Node.js. To use it, add the following configuration to your `vars.yml` file.
+
+```yaml
+homarr_environment_variables_db_driver: mysql2
+```
+
+>[!NOTE]
+> Currently (as of v1.17.0) MariaDB is not supported but planned. See [here](https://github.com/homarr-labs/homarr/issues/2305) for the latest information.
+
 ### Extending the configuration
 
 There are some additional things you may wish to configure about the component.
