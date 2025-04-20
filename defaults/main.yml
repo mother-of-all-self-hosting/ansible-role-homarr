@@ -14,6 +14,7 @@ homarr_enabled: true
 homarr_identifier: homarr
 homarr_base_path: "{{ homarr_identifier }}"
 
+# renovate: datasource=docker depName=ghcr.io/homarr-labs/homarr
 homarr_version: v1.17.0
 
 homarr_uid: ''
