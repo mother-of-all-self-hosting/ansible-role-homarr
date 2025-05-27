@@ -92,7 +92,7 @@ homarr_environment_variables_db_driver: mysql2
 ```
 
 >[!NOTE]
-> Currently (as of v1.17.0) MariaDB is not supported but planned. See [here](https://github.com/homarr-labs/homarr/issues/2305) for the latest information.
+> Currently (as of v1.17.0) MariaDB is not supported but planned. See [this issue at GitHub](https://github.com/homarr-labs/homarr/issues/2305) for the latest information.
 
 ### Extending the configuration
 
@@ -102,7 +102,7 @@ Take a look at:
 
 - [`defaults/main.yml`](../defaults/main.yml) for some variables that you can customize via your `vars.yml` file. You can override settings (even those that don't have dedicated playbook variables) using the `homarr_environment_variables_additional_variables` variable
 
-See [here](https://homarr.dev/docs/advanced/environment-variables/) for a complete list of Homarr's config options that you could put in `homarr_environment_variables_additional_variables`.
+See [the official documentation](https://homarr.dev/docs/advanced/environment-variables/) for a complete list of Homarr's config options that you could put in `homarr_environment_variables_additional_variables`.
 
 ## Installing
 

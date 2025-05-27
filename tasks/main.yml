@@ -4,27 +4,25 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-
 - name: Perform Homarr installation tasks
-  block:
-    - name: Validate Homarr configuration
-      when: homarr_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
-
-    - name: Install Homarr
-      when: homarr_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
   tags:
     - setup-all
     - setup-homarr
     - install-all
     - install-homarr
+  block:
+    - name: Validate Homarr configuration
+      when: homarr_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+    - name: Install Homarr
+      when: homarr_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
 
 - name: Perform Homarr uninstallation tasks
+  tags:
+    - setup-all
+    - setup-homarr
   block:
     - name: Uninstall Homarr
       when: not homarr_enabled | bool
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
-  tags:
-    - setup-all
-    - setup-homarr
