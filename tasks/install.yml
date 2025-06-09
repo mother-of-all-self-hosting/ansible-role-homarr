@@ -61,17 +61,21 @@
         force: "yes"
       register: homarr_git_pull_results
 
+    # Invoking the `docker build` command here, instead of calling the `docker_image` Ansible module,
+    # because the latter does not support BuildKit.
+    # See: https://github.com/ansible-collections/community.general/issues/514
     - name: Ensure Homarr container image is built
-      community.docker.docker_image:
-        name: "{{ homarr_container_image_name }}"
-        source: build
-        force_source: "{{ homarr_git_pull_results.changed if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
-        force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else homarr_git_pull_results.changed }}"
-        build:
-          dockerfile: Dockerfile
-          path: "{{ homarr_container_src_files_path }}"
-          pull: true
-          args:
+      ansible.builtin.shell:
+        chdir: "{{ homarr_container_src_files_path }}"
+        cmd: |
+          {{ devture_systemd_docker_base_host_command_docker }} build \
+          -t "{{ homarr_container_image }}" \
+          -f Dockerfile \
+          .
+      environment:
+        DOCKER_BUILDKIT: "1"
+        PYTHON: "/usr/bin/python3"
+      changed_when: true
 
 - name: Ensure Homarr container network is created via community.docker.docker_network
   when: devture_systemd_docker_base_container_network_creation_method == 'ansible-module'
