@@ -40,7 +40,6 @@ homarr_container_image_registry_prefix_upstream_default: ghcr.io/
 homarr_container_image_force_pull: "{{ homarr_container_image.endswith(':latest') }}"
 
 homarr_container_image_self_build: false
-homarr_container_image_name: "homarr-labs/homarr:{{ homarr_container_repo_version }}"
 homarr_container_repo: "https://github.com/homarr-labs/homarr.git"
 homarr_container_repo_version: "{{ homarr_version if homarr_version != 'latest' else 'main' }}"
 homarr_container_src_files_path: "{{ homarr_base_path }}/docker-src"
