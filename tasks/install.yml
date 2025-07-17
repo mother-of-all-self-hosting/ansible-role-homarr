@@ -13,6 +13,7 @@
     group: "{{ homarr_gid }}"
   with_items:
     - "{{ homarr_base_path }}"
+    - "{{ homarr_data_path }}"
 
 - name: Ensure Homarr support files installed
   ansible.builtin.template:
