@@ -25,11 +25,18 @@ traefik.http.middlewares.{{ homarr_identifier }}-strip-prefix.stripprefix.prefix
 {% set middlewares = middlewares + [homarr_identifier + '-strip-prefix'] %}
 {% endif %}
 
+{% if homarr_container_labels_traefik_additional_request_headers.keys() | length > 0 %}
+{% for name, value in homarr_container_labels_traefik_additional_request_headers.items() %}
+traefik.http.middlewares.{{ homarr_identifier }}-add-request-headers.headers.customrequestheaders.{{ name }}={{ value }}
+{% endfor %}
+{% set middlewares = middlewares + [homarr_identifier + '-add-request-headers'] %}
+{% endif %}
+
 {% if homarr_container_labels_traefik_additional_response_headers.keys() | length > 0 %}
 {% for name, value in homarr_container_labels_traefik_additional_response_headers.items() %}
-traefik.http.middlewares.{{ homarr_identifier }}-add-headers.headers.customresponseheaders.{{ name }}={{ value }}
+traefik.http.middlewares.{{ homarr_identifier }}-add-response-headers.headers.customresponseheaders.{{ name }}={{ value }}
 {% endfor %}
-{% set middlewares = middlewares + [homarr_identifier + '-add-headers'] %}
+{% set middlewares = middlewares + [homarr_identifier + '-add-response-headers'] %}
 {% endif %}
 
 traefik.http.routers.{{ homarr_identifier }}.rule={{ homarr_container_labels_traefik_rule }}
