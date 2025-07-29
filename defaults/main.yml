@@ -87,7 +87,7 @@ homarr_container_labels_traefik_tls: "{{ homarr_container_labels_traefik_entrypo
 homarr_container_labels_traefik_tls_certResolver: default  # noqa var-naming
 
 # Controls which additional headers to attach to all HTTP requests.
-# To add your own custom request headers, use `homarr_container_labels_traefik_additional_response_headers_custom`
+# To add your own custom request headers, use `homarr_container_labels_traefik_additional_request_headers_custom`
 homarr_container_labels_traefik_additional_request_headers: "{{ homarr_container_labels_traefik_additional_request_headers_auto | combine(homarr_container_labels_traefik_additional_request_headers_custom) }}"
 homarr_container_labels_traefik_additional_request_headers_auto: {}
 homarr_container_labels_traefik_additional_request_headers_custom: {}
