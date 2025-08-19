@@ -194,7 +194,7 @@ homarr_environment_variables_db_driver: better-sqlite3
 homarr_environment_variables_db_url: ''
 
 # Specify database configuration for mysql2
-homarr_environment_variables_db_host: localhost
+homarr_environment_variables_db_hostname: localhost
 homarr_environment_variables_db_port: 3306
 homarr_environment_variables_db_user: username
 homarr_environment_variables_db_password: password
