@@ -174,7 +174,10 @@ homarr_systemd_required_services_list_auto: []
 homarr_systemd_required_services_list_custom: []
 
 # List of systemd services that the Homarr systemd service wants
-homarr_systemd_wanted_services_list: []
+homarr_systemd_wanted_services_list: "{{ homarr_systemd_wanted_services_list_default + homarr_systemd_wanted_services_list_auto + homarr_systemd_wanted_services_list_custom }}"
+homarr_systemd_wanted_services_list_default: []
+homarr_systemd_wanted_services_list_auto: []
+homarr_systemd_wanted_services_list_custom: []
 
 # Specify secret key (required for Auth.js)
 homarr_environment_variables_auth_secret: supersecret
