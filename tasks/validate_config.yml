@@ -1,4 +1,6 @@
-# SPDX-FileCopyrightText: 2023 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2023 Julian-Samuel Gebühr
+# SPDX-FileCopyrightText: 2023 MASH project contributors
+# SPDX-FileCopyrightText: 2023 - 2025 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2025 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
@@ -32,6 +34,15 @@
     msg: >-
       homarr_environment_variables_db_driver must be 'better-sqlite3' or 'mysql2'
   when: "homarr_environment_variables_db_driver not in ['better-sqlite3', 'mysql2']"
+
+- name: Fail if required Homarr + MySQL2 integration settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) when `homarr_environment_variables_db_driver` is `mysql2`
+  when: "homarr_environment_variables_db_driver == 'mysql2' and lookup('vars', item, default='') | string | length == 0"
+  with_items:
+    - homarr_environment_variables_db_hostname
+    - homarr_environment_variables_db_password
 
 - name: Run if Traefik is enabled
   when: homarr_container_labels_traefik_enabled | bool
