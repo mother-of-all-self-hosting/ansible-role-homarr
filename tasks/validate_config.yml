@@ -27,6 +27,12 @@
     - homarr_data_path
     - homarr_environment_variables_secret_encryption_key
 
+- name: Fail if Homarr database driver option is invalid
+  ansible.builtin.fail:
+    msg: >-
+      homarr_environment_variables_db_driver must be 'better-sqlite3' or 'mysql2'
+  when: "homarr_environment_variables_db_driver not in ['better-sqlite3', 'mysql2']"
+
 - name: Run if Traefik is enabled
   when: homarr_container_labels_traefik_enabled | bool
   block:
