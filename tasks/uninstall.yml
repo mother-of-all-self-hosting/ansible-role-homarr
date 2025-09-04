@@ -42,12 +42,14 @@
         cmd: "rmdir {{ homarr_data_path }}"
       register: homarr_data_path_deletion_result
       changed_when: homarr_data_path_deletion_result.rc == 0
+      failed_when: false
 
     - name: Ensure Homarr base path does not exist if empty
       ansible.builtin.command:
         cmd: "rmdir {{ homarr_base_path }}"
       register: homarr_base_path_deletion_result
       changed_when: homarr_base_path_deletion_result.rc == 0
+      failed_when: false
 
     - name: Ensure Homarr container network does not exist via community.docker.docker_network
       when: devture_systemd_docker_base_container_network_creation_method == 'ansible-module'
