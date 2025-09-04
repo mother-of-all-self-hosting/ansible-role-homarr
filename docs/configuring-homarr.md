@@ -90,7 +90,7 @@ homarr_database_type: node-postgres
 
 Set `mysql2` to use a MySQL compatible database via [MySQL2](https://sidorares.github.io/node-mysql2/docs), a MySQL client for Node.js.
 
-For other settings, check variables such as `homarr_database_postgres_*` and `homarr_environment_variables_db_*` on [`defaults/main.yml`](../defaults/main.yml).
+For other settings, check variables such as `homarr_database_postgres_*` and `homarr_database_mysql_*` on [`defaults/main.yml`](../defaults/main.yml).
 
 ### Extending the configuration
 

@@ -13,10 +13,14 @@
       Please change your configuration to rename the variable (`{{ item.old }}` -> `{{ item.new }}`).
   when: "lookup('ansible.builtin.varnames', ('^' + item.old + '$'), wantlist=True) | length > 0"
   with_items:
-    - { "old": "homarr_environment_variables_db_host", "new": "homarr_environment_variables_db_hostname" }
     - { "old": "homarr_environment_variables_db_driver", "new": "homarr_database_type" }
-    - { "old": "homarr_environment_variables_db_name", "new": "homarr_database_name" }
     - { "old": "homarr_environment_variables_db_url", "new": "homarr_database_url" }
+    - { "old": "homarr_environment_variables_db_host", "new": "homarr_database_mysql_hostname" }
+    - { "old": "homarr_environment_variables_db_hostname", "new": "homarr_database_mysql_hostname" }
+    - { "old": "homarr_environment_variables_db_port", "new": "homarr_database_mysql_port" }
+    - { "old": "homarr_environment_variables_db_user", "new": "homarr_database_mysql_username" }
+    - { "old": "homarr_environment_variables_db_password", "new": "homarr_database_mysql_password" }
+    - { "old": "homarr_environment_variables_db_name", "new": "homarr_database_name" }
 
 - name: Fail if required Homarr settings not defined
   ansible.builtin.fail:
@@ -52,8 +56,8 @@
       You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `mysql2`
   when: "homarr_database_type == 'mysql2' and lookup('vars', item, default='') | string | length == 0"
   with_items:
-    - homarr_environment_variables_db_hostname
-    - homarr_environment_variables_db_password
+    - homarr_database_mysql_hostname
+    - homarr_database_mysql_password
 
 - name: Fail if required Homarr + node-postgres integration settings not defined
   ansible.builtin.fail:

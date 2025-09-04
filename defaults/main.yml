@@ -208,10 +208,10 @@ homarr_database_type: better-sqlite3
 
 # Specify database configuration
 homarr_database_url: ''
-homarr_environment_variables_db_hostname: ''
-homarr_environment_variables_db_port: 3306
-homarr_environment_variables_db_user: username
-homarr_environment_variables_db_password: ''
+homarr_database_mysql_hostname: ''
+homarr_database_mysql_port: 3306
+homarr_database_mysql_username: username
+homarr_database_mysql_password: ''
 homarr_database_postgres_hostname: ''
 homarr_database_postgres_port: 5432
 homarr_database_postgres_username: homarr
