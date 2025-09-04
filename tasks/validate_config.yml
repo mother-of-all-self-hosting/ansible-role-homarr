@@ -34,8 +34,8 @@
 - name: Fail if Homarr database driver option is invalid
   ansible.builtin.fail:
     msg: >-
-      homarr_database_type must be 'better-sqlite3' or 'mysql2'
-  when: "homarr_database_type not in ['better-sqlite3', 'mysql2']"
+      homarr_database_type must be 'better-sqlite3', 'mysql2', or 'node-postgres'
+  when: "homarr_database_type not in ['better-sqlite3', 'mysql2', 'node-postgres']"
 
 - name: Fail if required Homarr + better-sqlite3 integration settings not defined
   ansible.builtin.fail:
@@ -53,6 +53,15 @@
   with_items:
     - homarr_environment_variables_db_hostname
     - homarr_environment_variables_db_password
+
+- name: Fail if required Homarr + node-postgres integration settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `node-postgres`
+  when: "homarr_database_type == 'node-postgres' and lookup('vars', item, default='') | string | length == 0"
+  with_items:
+    - homarr_database_postgres_hostname
+    - homarr_database_postgres_password
 
 - name: Fail if Homarr Docker endpoint syntax invalid
   ansible.builtin.fail:

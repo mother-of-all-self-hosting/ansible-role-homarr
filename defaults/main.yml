@@ -16,7 +16,7 @@ homarr_base_path: "/{{ homarr_identifier }}"
 homarr_data_path: "{{ homarr_base_path }}/data"
 
 # renovate: datasource=docker depName=ghcr.io/homarr-labs/homarr
-homarr_version: v1.34.0
+homarr_version: v1.35.0
 
 homarr_uid: ''
 homarr_gid: ''
@@ -203,17 +203,19 @@ homarr_environment_variables_secret_encryption_key: ''
 homarr_environment_variables_log_level: info
 
 # Specify a database driver to use
-# Valid values: better-sqlite3, mysql2
+# Valid values: better-sqlite3, mysql2, node-postgres
 homarr_database_type: better-sqlite3
 
-# Specify a path to sqlite3 database file
+# Specify database configuration
 homarr_environment_variables_db_url: ''
-
-# Specify database configuration for mysql2
 homarr_environment_variables_db_hostname: ''
 homarr_environment_variables_db_port: 3306
 homarr_environment_variables_db_user: username
 homarr_environment_variables_db_password: ''
+homarr_database_postgres_hostname: ''
+homarr_database_postgres_port: 5432
+homarr_database_postgres_username: homarr
+homarr_database_postgres_password: ''
 homarr_database_name: homarr
 
 # Specify path to store trusted certificates during development

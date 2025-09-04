@@ -24,6 +24,15 @@ Homarr is a highly customizable dashboard for managing your favorite application
 
 See the project's [documentation](https://homarr.dev/docs/getting-started) to learn what Homarr does and why it might be useful to you.
 
+## Prerequisites
+
+To run a Homarr instance it is necessary to prepare a database. You can use a [SQLite](https://www.sqlite.org/), [Postgres](https://www.postgresql.org/), or [MySQL](https://www.mysql.com/) compatible database server. By default it is configured to use SQLite.
+
+If you are looking for Ansible roles for Postgres, you can check out [ansible-role-postgres](https://github.com/mother-of-all-self-hosting/ansible-role-postgres) maintained by the [Mother-of-All-Self-Hosting (MASH)](https://github.com/mother-of-all-self-hosting) team.
+
+>[!NOTE]
+> Currently (as of v1.17.0) MariaDB is not supported but planned. See [this issue at GitHub](https://github.com/homarr-labs/homarr/issues/2305) for the latest information.
+
 ## Adjusting the playbook configuration
 
 To enable Homarr with this role, add the following configuration to your `vars.yml` file.
@@ -69,18 +78,19 @@ homarr_environment_variables_secret_encryption_key: YOUR_SECRET_KEY_HERE
 >[!NOTE]
 > Other type of values such as one generated with `pwgen -s 64 1` does not work.
 
-### Use a database compatible with MySQL2 (optional)
+### Specify database (optional)
 
-By default the service adopts `better-sqlite3` as a database driver, which stores a SQLite database in `homarr_data_path`.
+You can specify a database used by Homarr. By default it is configured to use SQLite, and the SQLite database in stored in the directory specified with `homarr_data_path`.
 
-Alternatively, it is possible to use a database compatible with [MySQL2](https://sidorares.github.io/node-mysql2/docs), a MySQL client for Node.js. To use it, add the following configuration to your `vars.yml` file.
+To use Postgres, add the following configuration to your `vars.yml` file:
 
 ```yaml
-homarr_database_type: mysql2
+homarr_database_type: node-postgres
 ```
 
->[!NOTE]
-> Currently (as of v1.17.0) MariaDB is not supported but planned. See [this issue at GitHub](https://github.com/homarr-labs/homarr/issues/2305) for the latest information.
+Set `mysql2` to use a MySQL compatible database via [MySQL2](https://sidorares.github.io/node-mysql2/docs), a MySQL client for Node.js.
+
+For other settings, check variables such as `homarr_database_postgres_*` and `homarr_environment_variables_db_*` on [`defaults/main.yml`](../defaults/main.yml).
 
 ### Extending the configuration
 
