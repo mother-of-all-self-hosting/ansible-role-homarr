@@ -14,6 +14,7 @@
   when: "lookup('ansible.builtin.varnames', ('^' + item.old + '$'), wantlist=True) | length > 0"
   with_items:
     - { "old": "homarr_environment_variables_db_host", "new": "homarr_environment_variables_db_hostname" }
+    - { "old": "homarr_environment_variables_db_driver", "new": "homarr_database_type" }
 
 - name: Fail if required Homarr settings not defined
   ansible.builtin.fail:
@@ -32,14 +33,14 @@
 - name: Fail if Homarr database driver option is invalid
   ansible.builtin.fail:
     msg: >-
-      homarr_environment_variables_db_driver must be 'better-sqlite3' or 'mysql2'
-  when: "homarr_environment_variables_db_driver not in ['better-sqlite3', 'mysql2']"
+      homarr_database_type must be 'better-sqlite3' or 'mysql2'
+  when: "homarr_database_type not in ['better-sqlite3', 'mysql2']"
 
 - name: Fail if required Homarr + MySQL2 integration settings not defined
   ansible.builtin.fail:
     msg: >-
-      You need to define a required configuration setting (`{{ item }}`) when `homarr_environment_variables_db_driver` is `mysql2`
-  when: "homarr_environment_variables_db_driver == 'mysql2' and lookup('vars', item, default='') | string | length == 0"
+      You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `mysql2`
+  when: "homarr_database_type == 'mysql2' and lookup('vars', item, default='') | string | length == 0"
   with_items:
     - homarr_environment_variables_db_hostname
     - homarr_environment_variables_db_password

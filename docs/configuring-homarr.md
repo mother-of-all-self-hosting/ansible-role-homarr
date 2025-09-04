@@ -76,7 +76,7 @@ By default the service adopts `better-sqlite3` as a database driver, which store
 Alternatively, it is possible to use a database compatible with [MySQL2](https://sidorares.github.io/node-mysql2/docs), a MySQL client for Node.js. To use it, add the following configuration to your `vars.yml` file.
 
 ```yaml
-homarr_environment_variables_db_driver: mysql2
+homarr_database_type: mysql2
 ```
 
 >[!NOTE]
