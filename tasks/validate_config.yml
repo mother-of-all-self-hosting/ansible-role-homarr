@@ -44,6 +44,12 @@
     - homarr_environment_variables_db_hostname
     - homarr_environment_variables_db_password
 
+- name: Fail if Homarr Docker endpoint syntax invalid
+  ansible.builtin.fail:
+    msg: >-
+      homarr_docker_endpoint must look like `unix:///var/run/docker.sock` or `tcp://host:2345`
+  when: "not (homarr_docker_endpoint.startswith('unix://') or homarr_docker_endpoint.startswith('tcp://'))"
+
 - name: Run if Traefik is enabled
   when: homarr_container_labels_traefik_enabled | bool
   block:
