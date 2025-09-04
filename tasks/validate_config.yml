@@ -16,6 +16,7 @@
     - { "old": "homarr_environment_variables_db_host", "new": "homarr_environment_variables_db_hostname" }
     - { "old": "homarr_environment_variables_db_driver", "new": "homarr_database_type" }
     - { "old": "homarr_environment_variables_db_name", "new": "homarr_database_name" }
+    - { "old": "homarr_environment_variables_db_url", "new": "homarr_database_url" }
 
 - name: Fail if required Homarr settings not defined
   ansible.builtin.fail:
@@ -43,7 +44,7 @@
       You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `better-sqlite3`
   when: "homarr_database_type == 'better-sqlite3' and lookup('vars', item, default='') | string | length == 0"
   with_items:
-    - homarr_environment_variables_db_url
+    - homarr_database_url
 
 - name: Fail if required Homarr + MySQL2 integration settings not defined
   ansible.builtin.fail:
