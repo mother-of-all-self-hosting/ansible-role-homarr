@@ -214,7 +214,7 @@ homarr_environment_variables_db_hostname: ''
 homarr_environment_variables_db_port: 3306
 homarr_environment_variables_db_user: username
 homarr_environment_variables_db_password: ''
-homarr_environment_variables_db_name: homarr
+homarr_database_name: homarr
 
 # Specify path to store trusted certificates during development
 homarr_environment_variables_local_certificate_path: ''
