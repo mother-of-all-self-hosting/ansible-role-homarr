@@ -207,7 +207,7 @@ homarr_environment_variables_log_level: info
 homarr_database_type: better-sqlite3
 
 # Specify database configuration
-homarr_database_url: ''
+homarr_database_url: '/appdata/db.sqlite'
 homarr_database_mysql_hostname: ''
 homarr_database_mysql_port: 3306
 homarr_database_mysql_username: username
