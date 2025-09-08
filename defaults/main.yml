@@ -218,6 +218,13 @@ homarr_database_postgres_username: homarr
 homarr_database_postgres_password: ''
 homarr_database_name: homarr
 
+# Control if an external Redis instance is used
+homarr_environment_variables_redis_is_external: false
+homarr_redis_hostname: ""
+homarr_redis_port: 6379
+homarr_redis_username: ""
+homarr_redis_password: ""
+
 # Specify path to store trusted certificates during development
 homarr_environment_variables_local_certificate_path: ''
 
