@@ -80,7 +80,7 @@ homarr_environment_variables_secret_encryption_key: YOUR_SECRET_KEY_HERE
 
 ### Specify database (optional)
 
-You can specify a database used by Homarr. By default it is configured to use SQLite, and the SQLite database in stored in the directory specified with `homarr_data_path`.
+You can specify a database used by Homarr. By default it is configured to use SQLite, and the SQLite database is stored in the directory specified with `homarr_data_path`.
 
 To use Postgres, add the following configuration to your `vars.yml` file:
 
