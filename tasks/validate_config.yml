@@ -21,6 +21,7 @@
     - { "old": "homarr_environment_variables_db_user", "new": "homarr_database_mysql_username" }
     - { "old": "homarr_environment_variables_db_password", "new": "homarr_database_mysql_password" }
     - { "old": "homarr_environment_variables_db_name", "new": "homarr_database_name" }
+    - { "old": "homarr_http_header_content_permission_policy", "new": "homarr_http_header_permissions_policy" }
 
 - name: Fail if required Homarr settings not defined
   ansible.builtin.fail:
