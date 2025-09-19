@@ -224,6 +224,7 @@ homarr_redis_hostname: ""
 homarr_redis_port: 6379
 homarr_redis_username: ""
 homarr_redis_password: ""
+homarr_redis_database: 0
 
 # Specify path to store trusted certificates during development
 homarr_environment_variables_local_certificate_path: ''
