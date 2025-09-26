@@ -26,7 +26,7 @@ See the project's [documentation](https://homarr.dev/docs/getting-started) to le
 
 ## Prerequisites
 
-To run a Homarr instance it is necessary to prepare a database. You can use a [SQLite](https://www.sqlite.org/), [Postgres](https://www.postgresql.org/), or [MySQL](https://www.mysql.com/) compatible database server. By default it is configured to use SQLite.
+To run a Homarr instance it is necessary to prepare a database. You can use a [MySQL](https://www.mysql.com/), [Postgres](https://www.postgresql.org/), or [SQLite](https://www.sqlite.org/). By default it is configured to use SQLite.
 
 If you are looking for an Ansible role for Postgres, you can check out [ansible-role-postgres](https://github.com/mother-of-all-self-hosting/ansible-role-postgres) maintained by the [Mother-of-All-Self-Hosting (MASH)](https://github.com/mother-of-all-self-hosting) team.
 
