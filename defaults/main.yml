@@ -218,7 +218,7 @@ homarr_database_postgres_username: homarr
 homarr_database_postgres_password: ''
 homarr_database_name: homarr
 
-# Control if an external Redis instance is used
+# Specify Redis configuration
 homarr_environment_variables_redis_is_external: false
 homarr_redis_hostname: ""
 homarr_redis_port: 6379
