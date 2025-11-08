@@ -18,13 +18,13 @@ homarr_data_path: "{{ homarr_base_path }}/data"
 # renovate: datasource=docker depName=ghcr.io/homarr-labs/homarr
 homarr_version: v1.43.2
 
-homarr_uid: ''
-homarr_gid: ''
+homarr_uid: ""
+homarr_gid: ""
 
 homarr_scheme: https
 
 # The hostname at which Homarr is served.
-homarr_hostname: ''
+homarr_hostname: ""
 
 # The path at which Homarr is exposed.
 # This value must either be `/` or not end with a slash (e.g. `/homarr`).
@@ -49,7 +49,7 @@ homarr_container_image_self_build_src_files_path: "{{ homarr_base_path }}/docker
 # Controls whether the container exposes its HTTP port (tcp/80 in the container).
 #
 # Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:2586"), or empty string to not expose.
-homarr_container_http_host_bind_port: ''
+homarr_container_http_host_bind_port: ""
 
 # The base container network. It will be auto-created by this role if it doesn't exist already.
 homarr_container_network: "{{ homarr_identifier }}"
@@ -115,7 +115,7 @@ homarr_container_labels_traefik_additional_response_headers_custom: {}
 # homarr_container_labels_additional_labels: |
 #   my.label=1
 #   another.label="here"
-homarr_container_labels_additional_labels: ''
+homarr_container_labels_additional_labels: ""
 
 # A list of extra arguments to pass to the container (`docker run` command)
 homarr_container_extra_arguments: []
@@ -197,7 +197,7 @@ homarr_environment_variables_auth_secret: supersecret
 
 # Specify 32-byte hex digits to encrypt integration secrets in the database,
 # generated with `openssl rand -hex 32` or in another way.
-homarr_environment_variables_secret_encryption_key: ''
+homarr_environment_variables_secret_encryption_key: ""
 
 # Specify log level
 homarr_environment_variables_log_level: info
@@ -208,14 +208,14 @@ homarr_database_type: better-sqlite3
 
 # Specify database configuration
 homarr_database_url: '/appdata/db.sqlite'
-homarr_database_mysql_hostname: ''
+homarr_database_mysql_hostname: ""
 homarr_database_mysql_port: 3306
 homarr_database_mysql_username: username
-homarr_database_mysql_password: ''
-homarr_database_postgres_hostname: ''
+homarr_database_mysql_password: ""
+homarr_database_postgres_hostname: ""
 homarr_database_postgres_port: 5432
 homarr_database_postgres_username: homarr
-homarr_database_postgres_password: ''
+homarr_database_postgres_password: ""
 homarr_database_name: homarr
 
 # Specify Redis configuration
@@ -227,7 +227,7 @@ homarr_redis_password: ""
 homarr_redis_database: 0
 
 # Specify path to store trusted certificates during development
-homarr_environment_variables_local_certificate_path: ''
+homarr_environment_variables_local_certificate_path: ""
 
 # Control if turbo telemetry is disabled
 homarr_environment_variables_turbo_telemetry_disabled: 1
@@ -236,4 +236,4 @@ homarr_environment_variables_turbo_telemetry_disabled: 1
 homarr_environment_variables_enable_kubernetes: false
 
 # Additional environment variables.
-homarr_environment_variables_additional_variables: ''
+homarr_environment_variables_additional_variables: ""
