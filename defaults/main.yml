@@ -120,7 +120,7 @@ homarr_container_labels_additional_labels: "{{ homarr_container_labels_additiona
 homarr_container_labels_additional_labels_auto: {}
 homarr_container_labels_additional_labels_custom: {}
 
-# A list of extra arguments to pass to the container (`docker run` command)
+# A list of extra arguments to pass to the container (`docker create` command)
 homarr_container_extra_arguments: "{{ homarr_container_extra_arguments_auto + homarr_container_extra_arguments_custom }}"
 homarr_container_extra_arguments_auto: []
 homarr_container_extra_arguments_custom: []
