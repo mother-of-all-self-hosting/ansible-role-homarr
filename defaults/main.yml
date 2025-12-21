@@ -26,7 +26,7 @@ homarr_scheme: https
 # The hostname at which Homarr is served.
 homarr_hostname: ""
 
-# The path at which Homarr is exposed.
+# The path at which Homarr is served.
 # This value must either be `/` or not end with a slash (e.g. `/homarr`).
 #
 # Hosting Homarr under a subpath does not seem to be possible due to Homarr's
