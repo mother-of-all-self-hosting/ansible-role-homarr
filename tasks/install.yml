@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-- name: Ensure Homarr path exists
+- name: Ensure Homarr paths exist
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
