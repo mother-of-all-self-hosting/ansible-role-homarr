@@ -114,11 +114,11 @@ homarr_container_labels_traefik_additional_response_headers_custom: {}
 #
 # Example:
 # homarr_container_labels_additional_labels_custom: |
-#   my.label=1
-#   another.label="here"
-homarr_container_labels_additional_labels: "{{ homarr_container_labels_additional_labels_auto | combine(homarr_container_labels_additional_labels_custom) }}"
-homarr_container_labels_additional_labels_auto: {}
-homarr_container_labels_additional_labels_custom: {}
+#   - my.label=1
+#   - another.label="here"
+homarr_container_labels_additional_labels: "{{ homarr_container_labels_additional_labels_auto + homarr_container_labels_additional_labels_custom }}"
+homarr_container_labels_additional_labels_auto: []
+homarr_container_labels_additional_labels_custom: []
 
 # A list of extra arguments to pass to the container (`docker create` command)
 homarr_container_extra_arguments: "{{ homarr_container_extra_arguments_auto + homarr_container_extra_arguments_custom }}"

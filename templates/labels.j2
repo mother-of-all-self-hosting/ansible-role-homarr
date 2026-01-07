@@ -56,4 +56,6 @@ traefik.http.routers.{{ homarr_identifier }}.tls.certResolver={{ homarr_containe
 traefik.http.services.{{ homarr_identifier }}.loadbalancer.server.port={{ homarr_container_http_port }}
 {% endif %}
 
-{{ homarr_container_labels_additional_labels }}
+{% for arg in homarr_container_labels_additional_labels %}
+{{ arg }}
+{% endfor %}
