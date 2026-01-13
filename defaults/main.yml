@@ -21,6 +21,7 @@ homarr_version: v1.50.0
 homarr_uid: ""
 homarr_gid: ""
 
+# The scheme used for serving Homarr.
 homarr_scheme: https
 
 # The hostname at which Homarr is served.
@@ -46,7 +47,7 @@ homarr_container_image_self_build_repo: "https://github.com/homarr-labs/homarr.g
 homarr_container_image_self_build_repo_version: "{{ homarr_version if homarr_version != 'latest' else 'main' }}"
 homarr_container_image_self_build_src_files_path: "{{ homarr_base_path }}/docker-src"
 
-# Controls whether the container exposes its HTTP port (tcp/80 in the container).
+# Controls whether the container exposes its HTTP port (tcp/7575 in the container).
 #
 # Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:2586"), or empty string to not expose.
 homarr_container_http_host_bind_port: ""
