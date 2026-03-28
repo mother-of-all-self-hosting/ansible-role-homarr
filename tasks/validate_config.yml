@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 Julian-Samuel Gebühr
 # SPDX-FileCopyrightText: 2023 MASH project contributors
-# SPDX-FileCopyrightText: 2023 - 2025 Slavi Pantaleev
-# SPDX-FileCopyrightText: 2025 Suguru Hirahara
+# SPDX-FileCopyrightText: 2023-2025 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -52,14 +52,35 @@
     - homarr_database_mysql_hostname
     - homarr_database_mysql_password
 
-- name: Fail if required Homarr + node-postgres integration settings not defined
-  ansible.builtin.fail:
-    msg: >-
-      You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `node-postgres`
-  when: "homarr_database_type == 'node-postgres' and lookup('vars', item, default='') | string | length == 0"
-  with_items:
-    - homarr_database_postgres_hostname
-    - homarr_database_postgres_password
+- name: Run if Homarr + node-postgres integration is enabled
+  when: homarr_database_type == 'node-postgres'
+  block:
+    - name: Fail if required Homarr + node-postgres integration settings not defined
+      ansible.builtin.fail:
+        msg: >-
+          You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `node-postgres`
+      when: "lookup('vars', item, default='') | string | length == 0"
+      with_items:
+        - homarr_database_postgres_password
+
+    - name: Fail if node-postgres socket host path for Homarr is missing when Unix socket is enabled
+      ansible.builtin.fail:
+        msg: >-
+          You need to define `homarr_database_postgres_socket_path_host` when `homarr_database_type` is `node-postgres`
+          and `homarr_database_postgres_socket_enabled` is `true`.
+      when: >-
+        homarr_database_postgres_socket_enabled and
+        homarr_database_postgres_socket_path_host | string | length == 0
+
+    - name: Fail if node-postgres hostname for Homarr is missing when Unix socket is disabled
+      ansible.builtin.fail:
+        msg: >-
+          You need to define `homarr_database_postgres_hostname` when `homarr_database_type` is `node-postgres`
+          and `homarr_database_postgres_socket_enabled` is `false`.
+      when: >-
+        not homarr_database_postgres_socket_enabled and
+        homarr_database_postgres_hostname | string | length == 0
+
 
 - name: Fail if Homarr Docker endpoint syntax invalid
   ansible.builtin.fail:

@@ -1,8 +1,9 @@
-# SPDX-FileCopyrightText: 2023 - 2024 Nikita Chernyi
-# SPDX-FileCopyrightText: 2023 - 2025 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2023, 2024 Nikita Chernyi
+# SPDX-FileCopyrightText: 2023-2025 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2024 Julian-Samuel Gebühr
 # SPDX-FileCopyrightText: 2024 Sergio Durigan Junior
 # SPDX-FileCopyrightText: 2025 MASH project contributors
-# SPDX-FileCopyrightText: 2025 Suguru Hirahara
+# SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -219,6 +220,12 @@ homarr_container_cleanup_command: |
   echo "Failed to remove stale container {{ homarr_identifier }} after {{ homarr_container_cleanup_timeout_seconds }} attempts" >&2;
   exit 1
 
+########################################################################
+#                                                                      #
+# database                                                             #
+#                                                                      #
+########################################################################
+
 # Specify a database driver to use
 # Valid values: better-sqlite3, mysql2, node-postgres
 homarr_database_type: better-sqlite3
@@ -234,6 +241,23 @@ homarr_database_postgres_port: 5432
 homarr_database_postgres_username: homarr
 homarr_database_postgres_password: ""
 homarr_database_name: homarr
+
+# Control if the connection to Postgres is made via a Unix socket
+homarr_database_postgres_socket_enabled: true
+
+# Specify the path to the Postgres Unix socket path on the host (bind-mount source)
+homarr_database_postgres_socket_path_host: ""
+
+# Specify the path to the Postgres Unix socket path inside the Homarr server container
+homarr_database_postgres_socket_path_container: /run-postgres
+
+homarr_environment_variables_db_host_postgres: "{{ homarr_database_postgres_socket_path_container if homarr_database_postgres_socket_enabled else homarr_database_postgres_hostname }}"
+
+########################################################################
+#                                                                      #
+# /database                                                            #
+#                                                                      #
+########################################################################
 
 # Specify Redis configuration
 homarr_environment_variables_redis_is_external: false

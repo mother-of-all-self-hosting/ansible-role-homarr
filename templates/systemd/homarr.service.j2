@@ -1,7 +1,7 @@
 {#
 SPDX-FileCopyrightText: 2023 Slavi Pantaleev
 SPDX-FileCopyrightText: 2024 Nikita Chernyi
-SPDX-FileCopyrightText: 2025 Suguru Hirahara
+SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
 
 SPDX-License-Identifier: AGPL-3.0-or-later
 #}
@@ -56,6 +56,9 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --mount type=bind,src={{ homarr_data_path }},dst=/appdata/ \
       {% if homarr_docker_endpoint_is_unix_socket %}
       --mount type=bind,src={{ homarr_docker_endpoint | replace('unix://', '') }},dst=/var/run/docker.sock,ro \
+      {% endif %}
+      {% if homarr_database_type == 'node-postgres' and homarr_database_postgres_socket_enabled and homarr_database_postgres_socket_path_host != '' %}
+      --mount type=bind,src={{ homarr_database_postgres_socket_path_host }},dst={{ homarr_database_postgres_socket_path_container }} \
       {% endif %}
       {% for volume in homarr_container_additional_volumes %}
       --mount type={{ volume.type | default('bind' if '/' in volume.src else 'volume') }},src={{ volume.src }},dst={{ volume.dst }}{{ (',' + volume.options) if volume.options | default('') else '' }} \
