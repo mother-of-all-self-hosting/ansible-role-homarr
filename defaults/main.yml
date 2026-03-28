@@ -219,6 +219,30 @@ homarr_container_cleanup_command: |
   echo "Failed to remove stale container {{ homarr_identifier }} after {{ homarr_container_cleanup_timeout_seconds }} attempts" >&2;
   exit 1
 
+# Specify a database driver to use
+# Valid values: better-sqlite3, mysql2, node-postgres
+homarr_database_type: better-sqlite3
+
+# Specify database configuration
+homarr_database_url: '/appdata/db.sqlite'
+homarr_database_mysql_hostname: ""
+homarr_database_mysql_port: 3306
+homarr_database_mysql_username: username
+homarr_database_mysql_password: ""
+homarr_database_postgres_hostname: ""
+homarr_database_postgres_port: 5432
+homarr_database_postgres_username: homarr
+homarr_database_postgres_password: ""
+homarr_database_name: homarr
+
+# Specify Redis configuration
+homarr_environment_variables_redis_is_external: false
+homarr_redis_hostname: ""
+homarr_redis_port: 6379
+homarr_redis_username: ""
+homarr_redis_password: ""
+homarr_redis_database: 0
+
 homarr_docker_endpoint: unix:///var/run/docker.sock
 
 # Specifies whether the Docker endpoint is a UNIX socket or not.
@@ -244,30 +268,6 @@ homarr_environment_variables_secret_encryption_key: ""
 
 # Specify log level
 homarr_environment_variables_log_level: info
-
-# Specify a database driver to use
-# Valid values: better-sqlite3, mysql2, node-postgres
-homarr_database_type: better-sqlite3
-
-# Specify database configuration
-homarr_database_url: '/appdata/db.sqlite'
-homarr_database_mysql_hostname: ""
-homarr_database_mysql_port: 3306
-homarr_database_mysql_username: username
-homarr_database_mysql_password: ""
-homarr_database_postgres_hostname: ""
-homarr_database_postgres_port: 5432
-homarr_database_postgres_username: homarr
-homarr_database_postgres_password: ""
-homarr_database_name: homarr
-
-# Specify Redis configuration
-homarr_environment_variables_redis_is_external: false
-homarr_redis_hostname: ""
-homarr_redis_port: 6379
-homarr_redis_username: ""
-homarr_redis_password: ""
-homarr_redis_database: 0
 
 # Specify path to store trusted certificates during development
 homarr_environment_variables_local_certificate_path: ""
