@@ -87,7 +87,7 @@ You can specify a database used by Homarr. By default it is configured to use SQ
 To use Postgres, add the following configuration to your `vars.yml` file:
 
 ```yaml
-homarr_database_type: node-postgres
+homarr_database_type: postgres
 ```
 
 Set `mysql2` to use a MySQL compatible database via [MySQL2](https://sidorares.github.io/node-mysql2/docs), a MySQL client for Node.js.

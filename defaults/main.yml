@@ -227,8 +227,8 @@ homarr_container_cleanup_command: |
 ########################################################################
 
 # Specify a database driver to use
-# Valid values: better-sqlite3, mysql2, node-postgres
-homarr_database_type: better-sqlite3
+# Valid values: mysql, postgres, sqlite
+homarr_database_type: sqlite
 
 # Specify database configuration
 homarr_database_url: '/appdata/db.sqlite'

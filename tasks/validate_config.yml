@@ -40,42 +40,42 @@
 - name: Fail if Homarr database type is invalid
   ansible.builtin.fail:
     msg: >-
-      homarr_database_type must be 'better-sqlite3', 'mysql2', or 'node-postgres'
-  when: "homarr_database_type not in ['better-sqlite3', 'mysql2', 'node-postgres']"
+      homarr_database_type must be 'mysql', 'postgres', or 'sqlite'
+  when: "homarr_database_type not in ['postgres', 'mysql', 'sqlite']"
 
-- name: Fail if required Homarr + MySQL2 integration settings not defined
+- name: Fail if required Homarr + MySQL integration settings not defined
   ansible.builtin.fail:
     msg: >-
-      You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `mysql2`
-  when: "homarr_database_type == 'mysql2' and lookup('vars', item, default='') | string | length == 0"
+      You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `mysql`
+  when: "homarr_database_type == 'mysql' and lookup('vars', item, default='') | string | length == 0"
   with_items:
     - homarr_database_mysql_hostname
     - homarr_database_mysql_password
 
-- name: Run if Homarr + node-postgres integration is enabled
-  when: homarr_database_type == 'node-postgres'
+- name: Run if Homarr + Postgres integration is enabled
+  when: homarr_database_type == 'postgres'
   block:
-    - name: Fail if required Homarr + node-postgres integration settings not defined
+    - name: Fail if required Homarr + Postgres integration settings not defined
       ansible.builtin.fail:
         msg: >-
-          You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `node-postgres`
+          You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `postgres`
       when: "lookup('vars', item, default='') | string | length == 0"
       with_items:
         - homarr_database_postgres_password
 
-    - name: Fail if node-postgres socket host path for Homarr is missing when Unix socket is enabled
+    - name: Fail if Postgres socket host path for Homarr is missing when Unix socket is enabled
       ansible.builtin.fail:
         msg: >-
-          You need to define `homarr_database_postgres_socket_path_host` when `homarr_database_type` is `node-postgres`
+          You need to define `homarr_database_postgres_socket_path_host` when `homarr_database_type` is `postgres`
           and `homarr_database_postgres_socket_enabled` is `true`.
       when: >-
         homarr_database_postgres_socket_enabled and
         homarr_database_postgres_socket_path_host | string | length == 0
 
-    - name: Fail if node-postgres hostname for Homarr is missing when Unix socket is disabled
+    - name: Fail if Postgres hostname for Homarr is missing when Unix socket is disabled
       ansible.builtin.fail:
         msg: >-
-          You need to define `homarr_database_postgres_hostname` when `homarr_database_type` is `node-postgres`
+          You need to define `homarr_database_postgres_hostname` when `homarr_database_type` is `postgres`
           and `homarr_database_postgres_socket_enabled` is `false`.
       when: >-
         not homarr_database_postgres_socket_enabled and

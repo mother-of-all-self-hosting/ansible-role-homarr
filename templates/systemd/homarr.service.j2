@@ -57,7 +57,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       {% if homarr_docker_endpoint_is_unix_socket %}
       --mount type=bind,src={{ homarr_docker_endpoint | replace('unix://', '') }},dst=/var/run/docker.sock,ro \
       {% endif %}
-      {% if homarr_database_type == 'node-postgres' and homarr_database_postgres_socket_enabled and homarr_database_postgres_socket_path_host != '' %}
+      {% if homarr_database_type == 'postgres' and homarr_database_postgres_socket_enabled and homarr_database_postgres_socket_path_host != '' %}
       --mount type=bind,src={{ homarr_database_postgres_socket_path_host }},dst={{ homarr_database_postgres_socket_path_container }} \
       {% endif %}
       {% for volume in homarr_container_additional_volumes %}
