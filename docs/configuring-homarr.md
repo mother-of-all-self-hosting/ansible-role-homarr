@@ -80,7 +80,9 @@ homarr_environment_variables_secret_encryption_key: YOUR_SECRET_KEY_HERE
 >[!NOTE]
 > Other type of values such as one generated with `pwgen -s 64 1` does not work.
 
-### Specify database (optional)
+### Configuring database
+
+#### Specify database (optional)
 
 You can specify a database used by Homarr. By default it is configured to use SQLite, and the SQLite database is stored in the directory specified with `homarr_data_path`.
 
@@ -94,7 +96,7 @@ Set `mysql2` to use a MySQL compatible database via [MySQL2](https://sidorares.g
 
 For other settings, check variables such as `homarr_database_postgres_*` and `homarr_database_mysql_*` on [`defaults/main.yml`](../defaults/main.yml).
 
-### Configuring connection to the Postgres server (optional)
+#### Configuring connection to the database server (optional)
 
 >[!NOTE]
 > The connection to the MySQL compatible database (MySQL2) via the Unix socket is not yet available.
