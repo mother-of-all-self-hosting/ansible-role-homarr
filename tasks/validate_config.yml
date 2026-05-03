@@ -26,16 +26,17 @@
 - name: Fail if required Homarr settings not defined
   ansible.builtin.fail:
     msg: >-
-      You need to define a required configuration setting (`{{ item }}`).
-  when: "lookup('vars', item, default='') | string | length == 0"
+      You need to define a required configuration setting (`{{ item.name }}`).
+  when: "item.when | bool and lookup('vars', item.name, default='') | string | length == 0"
   with_items:
-    - homarr_uid
-    - homarr_gid
-    - homarr_hostname
-    - homarr_path_prefix
-    - homarr_container_network
-    - homarr_data_path
-    - homarr_environment_variables_secret_encryption_key
+    - { "name": "homarr_uid", when: true }
+    - { "name": "homarr_gid", when: true }
+    - { "name": "homarr_hostname", when: true }
+    - { "name": "homarr_path_prefix", when: true }
+    - { "name": "homarr_container_network", when: true }
+    - { "name": "homarr_container_labels_traefik_middleware_basic_auth_users", when: "{{ homarr_container_labels_traefik_middleware_basic_auth_enabled }}" }
+    - { "name": "homarr_data_path", when: true }
+    - { "name": "homarr_environment_variables_secret_encryption_key", when: true }
 
 - name: Fail if Homarr database type is invalid
   ansible.builtin.fail:
