@@ -83,7 +83,6 @@
         not homarr_database_postgres_socket_enabled and
         homarr_database_postgres_hostname | string | length == 0
 
-
 - name: Fail if Homarr Docker endpoint syntax invalid
   ansible.builtin.fail:
     msg: >-
