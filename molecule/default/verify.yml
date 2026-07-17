@@ -23,6 +23,12 @@
         fail_msg: "homarr.service not active ({{ homarr_service.status.ActiveState }})"
         success_msg: "homarr.service is active"
 
+    - name: Retrieve Homarr service log for debugging
+      when: homarr_debug_service_enabled | bool
+      ansible.builtin.command:
+        cmd: journalctl -xeu homarr.service
+      changed_when: false
+
     - name: Wait for Homarr HTTP endpoint to respond (up to 10m)
       ansible.builtin.uri:
         url: "http://localhost:7575/"

@@ -27,6 +27,10 @@ provisioner:
   inventory:
     group_vars:
       all:
+        # Helper variables
+        homarr_debug_service_enabled: false
+
+        # Variables for Homarr
         homarr_uid: 1000
         homarr_gid: 1000
         homarr_hostname: homarr
