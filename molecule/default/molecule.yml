@@ -33,7 +33,8 @@ provisioner:
         # Variables for Homarr
         homarr_uid: 1000
         homarr_gid: 1000
-        homarr_hostname: homarr
+        homarr_scheme: http
+        homarr_hostname: localhost
         homarr_container_labels_traefik_enabled: false
         homarr_container_http_host_bind_port: 7575
         homarr_database_type: sqlite
