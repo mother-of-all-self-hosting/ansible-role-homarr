@@ -38,8 +38,8 @@ provisioner:
         homarr_hostname: localhost
         homarr_container_labels_traefik_enabled: false
         homarr_container_http_host_bind_port: 7575
-        homarr_database_type: sqlite
         homarr_environment_variables_secret_encryption_key: 24d1a8bd7e87ce6d01d21bf5ef37a3574d6b1a0622f8641fc4da394ecba0c389
+        homarr_database_type: sqlite
 
         # Test self-building
         homarr_container_image_self_build: true
