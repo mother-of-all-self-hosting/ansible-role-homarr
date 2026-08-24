@@ -1,9 +1,9 @@
 ---
 galaxy_info:
-  author: Suguru Hirahara
-  company: progressiv
+  author: mash
+  company: mash
   role_name: homarr
-  namespace: progressiv
+  namespace: mash
   description: Homarr
   platforms:
     - name: Debian
