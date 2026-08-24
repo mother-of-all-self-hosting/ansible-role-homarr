@@ -18,6 +18,12 @@ Check [`defaults/main.yml`](defaults/main.yml) for the full list of supported op
 
 💡 For an Ansible playbook which integrates this role and makes it easier to use, see the [Mother-of-All-Self-Hosting Ansible playbook](https://github.com/mother-of-all-self-hosting/mash-playbook).
 
+## Notes
+
+Homarr encrypts the secrets of the integrations you configure in it, and insists that `homarr_environment_variables_secret_encryption_key` be exactly 64 hexadecimal characters — what `openssl rand -hex 32` produces. It checks this itself, inside the container, and then keeps running anyway: the systemd service stays active while every request the site serves is an HTTP 500. This role therefore refuses the value during validation instead.
+
+Homarr also greets a fresh installation with an onboarding wizard which creates the first administrator, and there is no environment variable or command that skips it. Whichever way you install Homarr, the first thing to do is to visit it in a browser and walk through it.
+
 ## Development
 
 ### pre-commit
@@ -35,3 +41,9 @@ just prek-install-git-pre-commit-hook
 This role supports [Molecule](https://docs.ansible.com/projects/molecule/), an Ansible testing framework designed for developing and testing Ansible collections, playbooks, and roles.
 
 Refer to [this page](./molecule/README.md) for details about how to utilize it.
+
+### Releases
+
+Tags are created by [`.github/workflows/autotag.yml`](.github/workflows/autotag.yml), which asks [`bin/compute-next-tag.sh`](bin/compute-next-tag.sh) what the commit on `main` should be released as. The answer comes from the Homarr version pinned in [`defaults/main.yml`](defaults/main.yml) and from the tags that already exist, so a commit that only touches documentation or CI is not released at all, and any change to the role itself is — without waiting for a dependency bump to carry it along.
+
+[`bin/test-compute-next-tag.sh`](bin/test-compute-next-tag.sh) exercises that script against throwaway repositories, and runs as a prek hook.
