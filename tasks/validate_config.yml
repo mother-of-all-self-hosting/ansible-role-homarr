@@ -23,6 +23,7 @@
     - { "old": "homarr_environment_variables_db_name", "new": "homarr_database_name" }
     - { "old": "homarr_http_header_content_permission_policy", "new": "homarr_http_header_permissions_policy" }
     - { "old": "homarr_container_image_force_pull", "new": "<removed> (the new community.docker.docker_image_pull module handles this natively)" }
+    - { "old": "homarr_environment_variables_auth_secret", "new": "<removed> (Homarr's entrypoint overwrites AUTH_SECRET with a fresh random value on every container start, so this setting never reached the application)" }
 
 - name: Fail if required Homarr settings not defined
   ansible.builtin.fail:

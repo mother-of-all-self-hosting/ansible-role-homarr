@@ -285,9 +285,6 @@ homarr_environment_variables_docker_hostnames: ""
 # Specify ports to connect to in a comma separated list
 homarr_environment_variables_docker_ports: 2375
 
-# Specify secret key (required for Auth.js)
-homarr_environment_variables_auth_secret: supersecret
-
 # Specify 32-byte hex digits to encrypt integration secrets in the database,
 # generated with `openssl rand -hex 32` or in another way.
 homarr_environment_variables_secret_encryption_key: ""
