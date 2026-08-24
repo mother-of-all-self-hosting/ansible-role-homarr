@@ -1,0 +1,562 @@
+# SPDX-FileCopyrightText: 2026 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2026 Suguru Hirahara
+# SPDX-FileCopyrightText: 2026 spatterlight
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The verification suite that every Homarr scenario runs.
+#
+# Homarr is a Next.js application behind its own nginx, and it will answer with
+# a rendered page for practically any path you ask it for. "It returned 200"
+# therefore says almost nothing. What follows only makes claims that can be
+# falsified:
+#
+# - it establishes what a freshly installed, never-onboarded Homarr serves,
+#   and asserts exactly that, before touching anything
+# - it then completes the onboarding wizard over the API, and asserts that the
+#   surfaces which were closed are now open - so every later assertion is made
+#   against a state this suite is responsible for having produced
+# - it logs in and asserts that a request which was rejected is now accepted
+# - it creates a board and reads it back, both as the logged-in user and
+#   anonymously, so the read-back proves the write and the permission model
+# - it cross-checks all of it against the SQLite database the role bind-mounted
+# - it asserts the version the running instance reports against the version
+#   defaults/main.yml pins
+#
+# Onboarding is deliberately driven from here rather than from converge.yml:
+# the role's job is to install Homarr, not to click through its wizard, and a
+# converge that did so would leave nothing for the negative control to prove.
+
+---
+- name: Include the role's default variables under a separate name
+  ansible.builtin.include_vars:
+    # Only leaf values may be read out of this - anything defined in terms of
+    # another variable would be looked up in the surrounding scope, where the
+    # role's variables do not exist. `homarr_version` is a literal.
+    file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
+    name: homarr_role_defaults
+
+- name: Set Homarr verification facts
+  ansible.builtin.set_fact:
+    homarr_molecule_expected_version: "{{ homarr_role_defaults.homarr_version | regex_replace('^v', '') }}"
+    # The role bind-mounts `homarr_data_path` at /appdata inside the container,
+    # so whatever file name `homarr_database_url` names shows up here.
+    homarr_molecule_database_path: "{{ homarr_data_path }}/{{ homarr_database_url | basename }}"
+
+- name: Wait for the Homarr systemd service to become active
+  ansible.builtin.systemd_service:
+    name: homarr.service
+  register: homarr_service
+  until: homarr_service.status.ActiveState == 'active'
+  retries: 36
+  delay: 5
+
+- name: Assert that the Homarr systemd service is active
+  ansible.builtin.assert:
+    that: homarr_service.status.ActiveState == 'active'
+    fail_msg: "homarr.service is {{ homarr_service.status.ActiveState }}, not active"
+    success_msg: "homarr.service is active"
+
+# systemd reporting the service as active only means `docker start` has not
+# returned yet. Homarr runs its database migrations, seeds itself and then
+# boots Next.js, which takes minutes on the storage driver Molecule uses.
+# /api/health/live is the deep check: it queries the database and pings the
+# embedded Redis, and answers 500 if either is unreachable.
+- name: Wait for Homarr to report itself healthy
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/health/live"
+    method: GET
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_health
+  until: homarr_health.status == 200
+  retries: 120
+  delay: 5
+
+- name: Assert that Homarr can reach its database and its Redis
+  ansible.builtin.assert:
+    that:
+      - homarr_health.json.status == 'healthy'
+      - homarr_health.json.healthChecks.database.status == 'healthy'
+      - homarr_health.json.healthChecks.redis.status == 'healthy'
+    fail_msg: "Homarr is up but unhealthy: {{ homarr_health.json | default('no JSON body') }}"
+    success_msg: "Homarr reports its database and Redis as healthy"
+
+########################################################################
+#                                                                      #
+# the negative control                                                 #
+#                                                                      #
+########################################################################
+
+# Everything below this point is asserted before the suite changes anything,
+# and every one of these facts flips later on. Without them, a suite that
+# fetched a page and found it returned 200 would pass against a Homarr that
+# had been onboarded by someone else, against a Homarr with a broken database,
+# and against a good deal that is not Homarr at all.
+
+- name: Read the onboarding step of the freshly installed Homarr
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.currentStep"
+    method: GET
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_onboarding_before
+
+- name: Assert that Homarr was installed un-onboarded
+  ansible.builtin.assert:
+    that:
+      - homarr_onboarding_before.json.result.data.json.current == 'start'
+      - homarr_onboarding_before.json.result.data.json.previous is none
+    fail_msg: >-
+      Homarr did not come up at the start of its onboarding wizard
+      ({{ homarr_onboarding_before.json.result.data.json | default('no state') }}).
+      Either the role is reusing a database from a previous run, or something
+      other than a fresh Homarr is answering on this port.
+    success_msg: "Homarr is at the 'start' onboarding step, as a fresh installation should be"
+
+- name: Ask the un-onboarded Homarr for pages that require onboarding
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}{{ item }}"
+    method: GET
+    status_code: [307]
+    follow_redirects: none
+  register: homarr_gated_pages_before
+  loop:
+    - /
+    - /manage
+    - /boards/dashboard
+
+- name: Assert that an un-onboarded Homarr sends every page to the wizard
+  ansible.builtin.assert:
+    that: item.location | default('') is search('/init$')
+    fail_msg: "{{ item.item }} did not redirect to /init but to {{ item.location | default('nowhere') }}"
+    success_msg: "{{ item.item }} redirects to the onboarding wizard, as it should before onboarding"
+  loop: "{{ homarr_gated_pages_before.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Ask the un-onboarded Homarr for data that requires an account
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/{{ item }}"
+    method: GET
+    status_code: [401]
+    follow_redirects: none
+  register: homarr_protected_before
+  loop:
+    - user.getAll
+    - info.getInfo
+
+- name: Assert that Homarr refuses privileged data to anonymous callers
+  ansible.builtin.assert:
+    that: item.json.error.json.data.code == 'UNAUTHORIZED'
+    fail_msg: "{{ item.item }} answered {{ item.json | default('nothing recognizable') }} instead of refusing"
+    success_msg: "{{ item.item }} refuses anonymous callers"
+  loop: "{{ homarr_protected_before.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+########################################################################
+#                                                                      #
+# completing the onboarding wizard                                     #
+#                                                                      #
+########################################################################
+
+# Homarr has no environment variable and no CLI command that skips onboarding.
+# The wizard's own procedures are the sanctioned way through it: they are
+# public procedures gated on the recorded step rather than on a session,
+# precisely so that the first administrator can be created before one exists.
+- name: Advance Homarr's onboarding wizard to the step that creates the first user
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.nextStep"
+    method: POST
+    body_format: json
+    body:
+      json: {}
+    status_code: [200]
+    follow_redirects: none
+
+- name: Read the onboarding step Homarr moved to
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.currentStep"
+    method: GET
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_onboarding_user_step
+
+- name: Assert that Homarr is asking for the first user
+  ansible.builtin.assert:
+    that: homarr_onboarding_user_step.json.result.data.json.current == 'user'
+    fail_msg: >-
+      The wizard moved to '{{ homarr_onboarding_user_step.json.result.data.json.current }}'
+      instead of 'user'. Homarr picks the next step based on which authentication
+      providers are enabled, so this most likely means the credentials provider is not.
+    success_msg: "The wizard is at the 'user' step"
+
+- name: Create Homarr's first administrator
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/user.initUser"
+    method: POST
+    body_format: json
+    body:
+      json:
+        username: "{{ homarr_molecule_admin_username }}"
+        password: "{{ homarr_molecule_admin_password }}"
+        confirmPassword: "{{ homarr_molecule_admin_password }}"
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_init_user
+
+- name: Assert that Homarr accepted the first administrator
+  ansible.builtin.assert:
+    that: homarr_init_user.json.error is not defined
+    fail_msg: "Homarr rejected the first administrator: {{ homarr_init_user.json.error | default('') }}"
+    success_msg: "Homarr created the first administrator"
+
+# Creating the user moves the wizard on by itself; what is left are the
+# settings and integrations steps, neither of which needs an answer from us.
+- name: Walk Homarr's onboarding wizard to its end
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.nextStep"
+    method: POST
+    body_format: json
+    body:
+      json: {}
+    status_code: [200]
+    follow_redirects: none
+  loop: "{{ range(0, 4) | list }}"
+  loop_control:
+    label: "step {{ item + 1 }}"
+
+- name: Read the onboarding step after finishing the wizard
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.currentStep"
+    method: GET
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_onboarding_after
+
+- name: Assert that the onboarding state Homarr reports has flipped
+  ansible.builtin.assert:
+    that: homarr_onboarding_after.json.result.data.json.current == 'finish'
+    fail_msg: >-
+      The wizard ended at '{{ homarr_onboarding_after.json.result.data.json.current }}'
+      rather than 'finish'
+    success_msg: "Homarr's onboarding is finished, where it read 'start' before"
+
+- name: Ask the onboarded Homarr for the pages it used to refuse
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}{{ item }}"
+    method: GET
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_gated_pages_after
+  loop:
+    - /
+    - /manage
+    - /boards/dashboard
+
+- name: Assert that the pages which redirected to the wizard now render
+  ansible.builtin.assert:
+    that: item.status == 200
+    fail_msg: "{{ item.item }} answered {{ item.status }} after onboarding"
+    success_msg: "{{ item.item }} renders now that onboarding is done, where it redirected before"
+  loop: "{{ homarr_gated_pages_after.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+########################################################################
+#                                                                      #
+# logging in                                                           #
+#                                                                      #
+########################################################################
+
+- name: Fetch a CSRF token from Homarr
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/auth/csrf"
+    method: GET
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_csrf
+
+# Auth.js answers a rejected login with the same 302 it answers an accepted one
+# with - only the Location header and the presence of a session cookie differ.
+# A test that checked the status code would pass with any password at all, so
+# this deliberately tries a wrong one first and requires it to be turned away.
+- name: Try to log in to Homarr with the wrong password
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/auth/callback/credentials"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      csrfToken: "{{ homarr_csrf.json.csrfToken }}"
+      name: "{{ homarr_molecule_admin_username }}"
+      password: "{{ homarr_molecule_admin_password }}-is-not-the-password"
+      callbackUrl: "{{ homarr_molecule_base_url }}/"
+      redirect: "false"
+    headers:
+      Cookie: "{{ homarr_csrf.cookies_string }}"
+    status_code: [302]
+    follow_redirects: none
+  register: homarr_login_rejected
+
+- name: Assert that Homarr turned the wrong password away
+  ansible.builtin.assert:
+    that:
+      - homarr_login_rejected.set_cookie | default('') is not search('homarr[.]session-token=')
+      - homarr_login_rejected.location | default('') is search('error=CredentialsSignin')
+    fail_msg: >-
+      Homarr issued a session for a password that is not the account's. Every
+      authenticated assertion below this point would be meaningless.
+    success_msg: "Homarr rejects a wrong password, so a session it does issue means something"
+
+- name: Log in to Homarr as the administrator onboarding created
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/auth/callback/credentials"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      csrfToken: "{{ homarr_csrf.json.csrfToken }}"
+      name: "{{ homarr_molecule_admin_username }}"
+      password: "{{ homarr_molecule_admin_password }}"
+      callbackUrl: "{{ homarr_molecule_base_url }}/"
+      redirect: "false"
+    headers:
+      Cookie: "{{ homarr_csrf.cookies_string }}"
+    status_code: [302]
+    follow_redirects: none
+  register: homarr_login
+
+# The `uri` module only hands back a parsed `cookies` dictionary for 2xx
+# responses, and a successful Auth.js login is a 302, so the session token has
+# to be picked out of the raw Set-Cookie header.
+- name: Take the session token out of Homarr's response
+  ansible.builtin.set_fact:
+    homarr_molecule_session_cookie: >-
+      {{
+        homarr_login.set_cookie
+        | default('')
+        | regex_findall('homarr[.]session-token=([^;,\s]+)')
+        | first
+        | default('')
+      }}
+
+- name: Assert that Homarr issued a session
+  ansible.builtin.assert:
+    that:
+      - homarr_molecule_session_cookie | length > 0
+      - homarr_login.location | default('') is not search('error=')
+    fail_msg: "Homarr did not issue a session cookie; it redirected to {{ homarr_login.location | default('nowhere') }}"
+    success_msg: "Homarr issued a session cookie for the administrator"
+
+- name: Ask the onboarded Homarr, as the administrator, for the data it refused anonymously
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/user.getAll"
+    method: GET
+    headers:
+      Cookie: "homarr.session-token={{ homarr_molecule_session_cookie }}"
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_users
+
+- name: Assert that the account onboarding created is the account Homarr knows
+  ansible.builtin.assert:
+    that:
+      - homarr_users.json.result.data.json | map(attribute='name') | list == [homarr_molecule_admin_username]
+    fail_msg: >-
+      Homarr's user list is
+      {{ homarr_users.json.result.data.json | map(attribute='name') | list }},
+      not exactly the one account this suite created
+    success_msg: "Homarr answers the once-refused request, and knows exactly the account we created"
+
+########################################################################
+#                                                                      #
+# the version the running instance reports                             #
+#                                                                      #
+########################################################################
+
+- name: Ask Homarr which version it is
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/info.getInfo"
+    method: GET
+    headers:
+      Cookie: "homarr.session-token={{ homarr_molecule_session_cookie }}"
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_info
+
+- name: Assert that Homarr is the version defaults/main.yml pins
+  ansible.builtin.assert:
+    that:
+      - homarr_info.json.result.data.json.version is string
+      - homarr_info.json.result.data.json.version.startswith(homarr_molecule_expected_version)
+      # Proof that the comparison above discriminates: the same check against a
+      # version nobody has ever released has to fail.
+      - not homarr_info.json.result.data.json.version.startswith('0.0.0-never-released')
+    fail_msg: >-
+      Homarr reports version {{ homarr_info.json.result.data.json.version | default('nothing') }},
+      but defaults/main.yml pins {{ homarr_molecule_expected_version }}
+    success_msg: >-
+      Homarr reports version {{ homarr_info.json.result.data.json.version }},
+      matching the {{ homarr_molecule_expected_version }} defaults/main.yml pins
+
+########################################################################
+#                                                                      #
+# a round trip through Homarr's API                                    #
+#                                                                      #
+########################################################################
+
+- name: Create a board in Homarr
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/board.createBoard"
+    method: POST
+    body_format: json
+    body:
+      json:
+        name: "{{ homarr_molecule_board_name }}"
+        columnCount: 10
+        # Kept private on purpose, so that the anonymous read below has
+        # something to not see.
+        isPublic: false
+    headers:
+      Cookie: "homarr.session-token={{ homarr_molecule_session_cookie }}"
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_board_created
+
+- name: Assert that Homarr reported creating the board
+  ansible.builtin.assert:
+    that: homarr_board_created.json.result.data.json.boardId | default('') | length > 0
+    fail_msg: "Homarr did not return a board id: {{ homarr_board_created.json | default('') }}"
+    success_msg: "Homarr created board '{{ homarr_molecule_board_name }}'"
+
+- name: Read Homarr's boards back as the administrator
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/board.getAllBoards"
+    method: GET
+    headers:
+      Cookie: "homarr.session-token={{ homarr_molecule_session_cookie }}"
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_boards_authenticated
+
+- name: Assert that the board comes back the way it went in
+  vars:
+    homarr_created_board: >-
+      {{
+        homarr_boards_authenticated.json.result.data.json
+        | selectattr('id', 'equalto', homarr_board_created.json.result.data.json.boardId)
+        | list
+      }}
+  ansible.builtin.assert:
+    that:
+      - homarr_created_board | length == 1
+      - homarr_created_board[0].name == homarr_molecule_board_name
+      - not homarr_created_board[0].isPublic
+      - homarr_created_board[0].creator.name == homarr_molecule_admin_username
+    fail_msg: >-
+      The board this suite created did not come back intact:
+      {{ homarr_boards_authenticated.json.result.data.json }}
+    success_msg: >-
+      The board came back under the id Homarr returned, with its name, its
+      visibility and its creator intact
+
+- name: Read Homarr's boards back with no session at all
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/board.getAllBoards"
+    method: GET
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_boards_anonymous
+
+- name: Assert that the private board is invisible without a session
+  ansible.builtin.assert:
+    that: homarr_boards_anonymous.json.result.data.json | selectattr('name', 'equalto', homarr_molecule_board_name) | list | length == 0
+    fail_msg: >-
+      A board created as private is visible to anonymous callers:
+      {{ homarr_boards_anonymous.json.result.data.json }}
+    success_msg: "The private board is visible to the administrator and to nobody else"
+
+########################################################################
+#                                                                      #
+# cross-checking against the database the role mounted                 #
+#                                                                      #
+########################################################################
+
+# Reading the database from the host proves three things at once: that
+# `homarr_database_url` reached the application, that the bind mount the
+# systemd unit sets up is the directory the application writes to, and that
+# everything asserted over HTTP above was actually persisted rather than
+# answered out of a cache.
+- name: Assert that Homarr wrote its database where the role told it to
+  ansible.builtin.stat:
+    path: "{{ homarr_molecule_database_path }}"
+  register: homarr_database_file
+
+- name: Assert that the configured database file exists
+  ansible.builtin.assert:
+    that:
+      - homarr_database_file.stat.exists
+      - homarr_database_file.stat.size > 0
+    fail_msg: >-
+      homarr_database_url is set to {{ homarr_database_url }}, so
+      {{ homarr_molecule_database_path }} should exist on the host - it does not
+    success_msg: "Homarr's database is at {{ homarr_molecule_database_path }}, where homarr_database_url points"
+
+- name: Look for a database file at Homarr's default location
+  ansible.builtin.stat:
+    path: "{{ homarr_data_path }}/db.sqlite"
+  register: homarr_default_database_file
+
+- name: Assert that Homarr ignored its own default database location
+  ansible.builtin.assert:
+    that: not homarr_default_database_file.stat.exists
+    fail_msg: >-
+      {{ homarr_data_path }}/db.sqlite exists, which is the name Homarr uses when
+      DB_URL does not reach it. The value of homarr_database_url is not making it
+      into the container.
+    success_msg: "No database at the default name, so the configured name is the one in use"
+
+- name: Read the state Homarr recorded in its database
+  ansible.builtin.command:
+    argv:
+      - python3
+      - -c
+      - |
+        import json, sqlite3, sys
+        connection = sqlite3.connect("file:" + sys.argv[1] + "?mode=ro", uri=True)
+        print(json.dumps({
+            "onboarding": [
+                {"step": step, "previous_step": previous}
+                for step, previous in connection.execute("SELECT step, previous_step FROM onboarding")
+            ],
+            "users": sorted(row[0] for row in connection.execute("SELECT name FROM user")),
+            "boards": sorted(row[0] for row in connection.execute("SELECT name FROM board")),
+        }))
+      - "{{ homarr_molecule_database_path }}"
+  register: homarr_database_state
+  changed_when: false
+
+- name: Assert that the database agrees with what Homarr answered over HTTP
+  vars:
+    homarr_database_contents: "{{ homarr_database_state.stdout | from_json }}"
+  ansible.builtin.assert:
+    that:
+      - homarr_database_contents.onboarding | length == 1
+      - homarr_database_contents.onboarding[0].step == 'finish'
+      - homarr_database_contents.users == [homarr_molecule_admin_username]
+      - homarr_molecule_board_name in homarr_database_contents.boards
+    fail_msg: "Homarr's database says {{ homarr_database_contents }}"
+    success_msg: >-
+      The database records the finished onboarding, the one administrator and the
+      board this suite created
+
+- name: Report what was verified
+  ansible.builtin.debug:
+    msg:
+      - "homarr.service: {{ homarr_service.status.ActiveState }}"
+      - "health: database {{ homarr_health.json.healthChecks.database.status }}, redis {{ homarr_health.json.healthChecks.redis.status }}"
+      - "onboarding: {{ homarr_onboarding_before.json.result.data.json.current }} -> {{ homarr_onboarding_after.json.result.data.json.current }}"
+      - "version reported: {{ homarr_info.json.result.data.json.version }} (defaults/main.yml pins {{ homarr_molecule_expected_version }})"
+      - "board round trip: {{ homarr_molecule_board_name }} ({{ homarr_board_created.json.result.data.json.boardId }})"
+      - "database: {{ homarr_molecule_database_path }}"
+      - "HOMARR VERIFICATION COMPLETE"

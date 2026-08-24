@@ -1,53 +1,32 @@
-# SPDX-FileCopyrightText: 2026 spatterlight
+# SPDX-FileCopyrightText: 2026 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2026 Suguru Hirahara
+# SPDX-FileCopyrightText: 2026 spatterlight
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-- name: Verify Homarr systemd service
+- name: Verify Homarr
   hosts: all
   become: true
   gather_facts: false
   tasks:
-    - name: Wait for Homarr service to become active (up to 180s)
-      ansible.builtin.systemd:
-        name: homarr.service
-      register: homarr_service
-      until: homarr_service.status.ActiveState == 'active'
-      retries: 36
-      delay: 5
+    - name: Verify that Homarr works
+      block:
+        - name: Run the shared Homarr verification tasks
+          ansible.builtin.include_tasks: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/molecule/verify_tasks.yml"
+      rescue:
+        # Whatever went wrong, the reason is almost always in the service log,
+        # and nobody reading a failed CI run has a container left to look in.
+        - name: Retrieve the Homarr service log
+          ansible.builtin.command:
+            cmd: journalctl --no-pager -xeu homarr.service
+          register: homarr_service_log
+          changed_when: false
 
-    - name: Assert Homarr service is active
-      ansible.builtin.assert:
-        that: homarr_service.status.ActiveState == 'active'
-        fail_msg: "homarr.service not active ({{ homarr_service.status.ActiveState }})"
-        success_msg: "homarr.service is active"
+        - name: Show the Homarr service log
+          ansible.builtin.debug:
+            var: homarr_service_log.stdout_lines
 
-    - name: Retrieve Homarr service log for debugging
-      when: homarr_debug_service_enabled | bool
-      ansible.builtin.command:
-        cmd: journalctl -xeu homarr.service
-      changed_when: false
-
-    - name: Wait for Homarr HTTP endpoint to respond (up to 10m)
-      ansible.builtin.uri:
-        url: "http://localhost:7575/"
-        method: GET
-        status_code: [200, 302, 307]
-        follow_redirects: none
-      register: homarr_endpoint
-      until: homarr_endpoint.status in [200, 302, 307]
-      retries: 120
-      delay: 5
-
-    - name: Assert Homarr HTTP endpoint responds
-      ansible.builtin.assert:
-        that: homarr_endpoint.status in [200, 302, 307]
-        fail_msg: "Homarr did not respond as expected ({{ homarr_endpoint.status | default('no response') }})"
-        success_msg: "Homarr responded with {{ homarr_endpoint.status }}"
-
-    - name: Show Homarr systemd service status summary
-      ansible.builtin.debug:
-        msg:
-          - "Homarr systemd: {{ homarr_service.status.ActiveState }}"
-          - "Homarr HTTP: {{ homarr_endpoint.status }}"
+        - name: Fail because verification did not pass
+          ansible.builtin.fail:
+            msg: "Homarr verification failed. The service log is printed above."

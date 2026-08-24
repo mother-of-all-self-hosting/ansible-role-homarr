@@ -47,11 +47,31 @@ Currently these testing scenarios are available:
 
 ### `default`
 
-Tests a standard Homarr installation.
+Tests a standard Homarr installation, using the container image published upstream.
 
 ### `default-selfbuild`
 
-Tests a standard Homarr installation with self-building the container image.
+The same, with the container image built from Homarr's source instead of pulled.
+
+Both scenarios run the same checks, which live in [`verify_tasks.yml`](verify_tasks.yml).
+
+## What the scenarios verify
+
+Homarr is a Next.js application, and it renders a page for very nearly any path you ask it for. A test which fetched a URL and found a `200` would pass against a Homarr whose database is unreachable, against one somebody else has already set up, and against a fair few things that are not Homarr. So the suite establishes what a fresh, un-onboarded Homarr serves *before* it touches anything, and then makes every one of those facts flip:
+
+| | before | after |
+| --- | --- | --- |
+| `onboard.currentStep` | `start` | `finish` |
+| `/`, `/manage`, `/boards/dashboard` | `307` to `/init` | `200` |
+| `user.getAll`, `info.getInfo` without a session | `401` | `200` (with a session) |
+| the private board the suite creates | does not exist | visible to its creator, invisible anonymously |
+| the `onboarding` row in SQLite | `start` | `finish` |
+
+On top of that it waits on `/api/health/live`, which is the deep health check — it answers `500` unless Homarr can reach both its database and its Redis — asserts that the version the running instance reports matches the one `defaults/main.yml` pins, and cross-checks the whole story against the SQLite database the role bind-mounted into the container.
+
+Two assertions are deliberately made to fail on purpose, because they would otherwise prove nothing: a login with the wrong password (Auth.js answers a rejected login with the same `302` it answers an accepted one with, so only the absence of a session cookie distinguishes them), and the version comparison against a version that has never been released.
+
+The onboarding wizard is completed from `verify.yml`, never from `converge.yml`. Walking a user through a setup wizard is not the role's job, and a converge which did it would leave the negative control with nothing to establish.
 
 ## Running
 
