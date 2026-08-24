@@ -68,18 +68,23 @@
     method: GET
     status_code: [200]
     follow_redirects: none
+    # This endpoint answers with a JSON body under a `text/plain` content type,
+    # so the `uri` module does not parse it for us and `content` is all there is.
+    return_content: true
   register: homarr_health
   until: homarr_health.status == 200
   retries: 120
   delay: 5
 
 - name: Assert that Homarr can reach its database and its Redis
+  vars:
+    homarr_health_report: "{{ homarr_health.content | from_json }}"
   ansible.builtin.assert:
     that:
-      - homarr_health.json.status == 'healthy'
-      - homarr_health.json.healthChecks.database.status == 'healthy'
-      - homarr_health.json.healthChecks.redis.status == 'healthy'
-    fail_msg: "Homarr is up but unhealthy: {{ homarr_health.json | default('no JSON body') }}"
+      - homarr_health_report.status == 'healthy'
+      - homarr_health_report.healthChecks.database.status == 'healthy'
+      - homarr_health_report.healthChecks.redis.status == 'healthy'
+    fail_msg: "Homarr is up but unhealthy: {{ homarr_health.content | default('no body') }}"
     success_msg: "Homarr reports its database and Redis as healthy"
 
 ########################################################################
@@ -309,6 +314,11 @@
       authenticated assertion below this point would be meaningless.
     success_msg: "Homarr rejects a wrong password, so a session it does issue means something"
 
+# Redirects are followed here, unlike everywhere else in this file. The `uri`
+# module reports cookies only for the response it finally returns, and it
+# surfaces just one of the several Set-Cookie headers Auth.js sends with its
+# 302 - not, as it happens, the one carrying the session. Following the
+# redirect to the callback URL lands on a 200 whose cookie jar has all of them.
 - name: Log in to Homarr as the administrator onboarding created
   ansible.builtin.uri:
     url: "{{ homarr_molecule_base_url }}/api/auth/callback/credentials"
@@ -322,30 +332,22 @@
       redirect: "false"
     headers:
       Cookie: "{{ homarr_csrf.cookies_string }}"
-    status_code: [302]
-    follow_redirects: none
+    status_code: [200]
+    follow_redirects: all
   register: homarr_login
 
-# The `uri` module only hands back a parsed `cookies` dictionary for 2xx
-# responses, and a successful Auth.js login is a 302, so the session token has
-# to be picked out of the raw Set-Cookie header.
-- name: Take the session token out of Homarr's response
+- name: Take the session token out of Homarr's cookie jar
   ansible.builtin.set_fact:
-    homarr_molecule_session_cookie: >-
-      {{
-        homarr_login.set_cookie
-        | default('')
-        | regex_findall('homarr[.]session-token=([^;,\s]+)')
-        | first
-        | default('')
-      }}
+    homarr_molecule_session_cookie: "{{ homarr_login.cookies['homarr.session-token'] | default('') }}"
 
 - name: Assert that Homarr issued a session
   ansible.builtin.assert:
     that:
       - homarr_molecule_session_cookie | length > 0
-      - homarr_login.location | default('') is not search('error=')
-    fail_msg: "Homarr did not issue a session cookie; it redirected to {{ homarr_login.location | default('nowhere') }}"
+      # A rejected login is a redirect to the login form, which is also a 200
+      # once followed. Where it landed is the other half of the answer.
+      - homarr_login.url | default('') is not search('/auth/login')
+    fail_msg: "Homarr issued no session cookie; the login ended up at {{ homarr_login.url | default('nowhere') }}"
     success_msg: "Homarr issued a session cookie for the administrator"
 
 - name: Ask the onboarded Homarr, as the administrator, for the data it refused anonymously
@@ -551,10 +553,12 @@
       board this suite created
 
 - name: Report what was verified
+  vars:
+    homarr_health_report: "{{ homarr_health.content | from_json }}"
   ansible.builtin.debug:
     msg:
       - "homarr.service: {{ homarr_service.status.ActiveState }}"
-      - "health: database {{ homarr_health.json.healthChecks.database.status }}, redis {{ homarr_health.json.healthChecks.redis.status }}"
+      - "health: database {{ homarr_health_report.healthChecks.database.status }}, redis {{ homarr_health_report.healthChecks.redis.status }}"
       - "onboarding: {{ homarr_onboarding_before.json.result.data.json.current }} -> {{ homarr_onboarding_after.json.result.data.json.current }}"
       - "version reported: {{ homarr_info.json.result.data.json.version }} (defaults/main.yml pins {{ homarr_molecule_expected_version }})"
       - "board round trip: {{ homarr_molecule_board_name }} ({{ homarr_board_created.json.result.data.json.boardId }})"
