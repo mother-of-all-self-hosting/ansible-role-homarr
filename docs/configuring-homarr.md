@@ -78,7 +78,7 @@ homarr_environment_variables_secret_encryption_key: YOUR_SECRET_KEY_HERE
 ```
 
 >[!NOTE]
-> Other type of values such as one generated with `pwgen -s 64 1` does not work.
+> Other type of values such as one generated with `pwgen -s 64 1` does not work. The role rejects anything that is not exactly 64 hexadecimal characters, because Homarr itself does not: it starts, keeps running, and then answers every request with an HTTP 500, while the systemd service still looks healthy.
 
 ### Configuring database
 

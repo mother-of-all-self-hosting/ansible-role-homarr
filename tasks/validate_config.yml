@@ -38,6 +38,20 @@
     - homarr_data_path
     - homarr_environment_variables_secret_encryption_key
 
+# Homarr validates SECRET_ENCRYPTION_KEY itself, but only after the container has already
+# started, and it does not stop the container over it. The result is a service which systemd
+# happily reports as `active` while every single HTTP request it serves is a 500. Catching the
+# bad value here turns that into a failed playbook run with an actionable message.
+- name: Fail if Homarr encryption key is not 64 hexadecimal characters
+  ansible.builtin.fail:
+    msg: >-
+      homarr_environment_variables_secret_encryption_key must be exactly 64 hexadecimal characters
+      (that is, 32 bytes in hex), which is what `openssl rand -hex 32` produces.
+      Homarr refuses to start its background task and websocket services with any other value,
+      and then answers every request with an HTTP 500 - while the container keeps running and the
+      systemd service keeps looking healthy.
+  when: "not (homarr_environment_variables_secret_encryption_key | string is match('^[0-9a-fA-F]{64}$'))"
+
 - name: Fail if Homarr database type is invalid
   ansible.builtin.fail:
     msg: >-
