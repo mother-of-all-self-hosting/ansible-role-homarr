@@ -504,19 +504,27 @@
       {{ homarr_molecule_database_path }} should exist on the host - it does not
     success_msg: "Homarr's database is at {{ homarr_molecule_database_path }}, where homarr_database_url points"
 
-- name: Look for a database file at Homarr's default location
-  ansible.builtin.stat:
-    path: "{{ homarr_data_path }}/db.sqlite"
-  register: homarr_default_database_file
+# Naming one alternative location and finding nothing there would prove little:
+# the role's own default puts the database at db.sqlite, while the container
+# image's built-in default puts it at db/db.sqlite. Requiring that the whole
+# data directory holds exactly one database, at the configured path, rules out
+# both of those and anything else.
+- name: Look for every database under Homarr's data directory
+  ansible.builtin.find:
+    paths: "{{ homarr_data_path }}"
+    patterns: "*.sqlite"
+    recurse: true
+  register: homarr_database_files
 
-- name: Assert that Homarr ignored its own default database location
+- name: Assert that the only database is the configured one
   ansible.builtin.assert:
-    that: not homarr_default_database_file.stat.exists
+    that: homarr_database_files.files | map(attribute='path') | sort == [homarr_molecule_database_path]
     fail_msg: >-
-      {{ homarr_data_path }}/db.sqlite exists, which is the name Homarr uses when
-      DB_URL does not reach it. The value of homarr_database_url is not making it
-      into the container.
-    success_msg: "No database at the default name, so the configured name is the one in use"
+      homarr_database_url names {{ homarr_molecule_database_path }}, but the databases
+      under {{ homarr_data_path }} are
+      {{ homarr_database_files.files | map(attribute='path') | sort }}.
+      The configured value is not the one Homarr is using.
+    success_msg: "The only database under {{ homarr_data_path }} is the one homarr_database_url names"
 
 - name: Read the state Homarr recorded in its database
   ansible.builtin.command:
