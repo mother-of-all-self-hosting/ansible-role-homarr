@@ -1,6 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Patch releases are automerged here once the Molecule run on the pull request is green.",
+    "The risk that automerging a container bump normally carries is that Homarr migrates its own database on startup: the entrypoint runs Drizzle migrations before serving anything, forward-only, against the database holding the user's boards, integrations and encrypted secrets. An unattended bump that shipped a migration would rewrite that schema with no way back short of restoring a backup.",
+    "Homarr's patch releases do not ship migrations. Every 1.x patch span that can be compared - v1.42.0..1, v1.43.0..1/2/3, v1.45.0..1/2/3, v1.49.0..1, v1.50.0..1, v1.53.0..1/2, v1.56.0..1, v1.57.0..1, v1.58.0..1, v1.59.0..1/2/3, v1.61.0..1, v1.68.0..1, v1.69.0..1/2 - adds nothing under packages/db/migrations/. Minor bumps do (v1.69.0 -> v1.70.0 added 0040_add_widget_secret.sql), which is what keeps them behind human review.",
+    "The second thing homarr_version drives is the git ref that self-building checks out. Every tag published to ghcr.io/homarr-labs/homarr has a matching tag in the upstream git repository, so a bump Renovate proposes can never leave a self-building deployment without a ref to build.",
+    "What is left - a patch that breaks Homarr itself - is what the Molecule scenario is for. It completes onboarding, logs in, creates a board through the API and reads it back, asserts the version the running instance reports, and cross-checks the SQLite database the role mounted. A patch that does not work does not merge."
+  ],
   "extends": [
-    "github>mother-of-all-self-hosting/renovate-config#v1.0.0"
+    "github>mother-of-all-self-hosting/renovate-config#v1.0.0",
+    "github>mother-of-all-self-hosting/renovate-config//patch-automerge#v1.0.0"
   ]
 }
