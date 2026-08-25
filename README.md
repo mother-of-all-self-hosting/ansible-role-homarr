@@ -18,12 +18,6 @@ Check [`defaults/main.yml`](defaults/main.yml) for the full list of supported op
 
 💡 For an Ansible playbook which integrates this role and makes it easier to use, see the [Mother-of-All-Self-Hosting Ansible playbook](https://github.com/mother-of-all-self-hosting/mash-playbook).
 
-## Notes
-
-Homarr encrypts the secrets of the integrations you configure in it, and insists that `homarr_environment_variables_secret_encryption_key` be exactly 64 hexadecimal characters — what `openssl rand -hex 32` produces. It checks this itself, inside the container, and then keeps running anyway: the systemd service stays active while every request the site serves is an HTTP 500. This role therefore refuses the value during validation instead.
-
-Homarr also greets a fresh installation with an onboarding wizard which creates the first administrator, and there is no environment variable or command that skips it. Whichever way you install Homarr, the first thing to do is to visit it in a browser and walk through it.
-
 ## Development
 
 ### pre-commit
