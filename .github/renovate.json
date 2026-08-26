@@ -8,7 +8,7 @@
     "What is left - a patch that breaks Homarr itself - is what the Molecule scenario is for. It completes onboarding, logs in, creates a board through the API and reads it back, asserts the version the running instance reports, and cross-checks the SQLite database the role mounted. A patch that does not work does not merge."
   ],
   "extends": [
-    "github>mother-of-all-self-hosting/renovate-config#v1.0.0",
-    "github>mother-of-all-self-hosting/renovate-config//patch-automerge#v1.0.0"
+    "github>mother-of-all-self-hosting/renovate-config#v1.1.0",
+    "github>mother-of-all-self-hosting/renovate-config//patch-automerge#v1.1.0"
   ]
 }
