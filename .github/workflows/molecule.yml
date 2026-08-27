@@ -40,18 +40,9 @@ jobs:
       matrix:
         distro:
           - ubuntu2604
-          - debian13
         scenario:
           - default
           - default-selfbuild
-        # What the self-build scenario tests is a `docker build` of Homarr's
-        # own Dockerfile, which is a multi-stage Node build that does not care
-        # which distribution the Docker daemon happens to run on. Building it
-        # a second time on Debian costs the better part of an hour and tests
-        # nothing the Ubuntu run has not already tested.
-        exclude:
-          - distro: debian13
-            scenario: default-selfbuild
       fail-fast: false
 
     env:
