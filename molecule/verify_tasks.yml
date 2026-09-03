@@ -571,4 +571,3 @@
       - "version reported: {{ homarr_info.json.result.data.json.version }} (defaults/main.yml pins {{ homarr_molecule_expected_version }})"
       - "board round trip: {{ homarr_molecule_board_name }} ({{ homarr_board_created.json.result.data.json.boardId }})"
       - "database: {{ homarr_molecule_database_path }}"
-      - "HOMARR VERIFICATION COMPLETE"
