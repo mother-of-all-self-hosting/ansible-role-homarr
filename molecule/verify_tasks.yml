@@ -560,14 +560,14 @@
       The database records the finished onboarding, the one administrator and the
       board this suite created
 
-- name: Report what was verified
+- name: Show Homarr verification summary
   vars:
     homarr_health_report: "{{ homarr_health.content | from_json }}"
   ansible.builtin.debug:
     msg:
-      - "homarr.service: {{ homarr_service.status.ActiveState }}"
-      - "health: database {{ homarr_health_report.healthChecks.database.status }}, redis {{ homarr_health_report.healthChecks.redis.status }}"
-      - "onboarding: {{ homarr_onboarding_before.json.result.data.json.current }} -> {{ homarr_onboarding_after.json.result.data.json.current }}"
-      - "version reported: {{ homarr_info.json.result.data.json.version }} (defaults/main.yml pins {{ homarr_molecule_expected_version }})"
-      - "board round trip: {{ homarr_molecule_board_name }} ({{ homarr_board_created.json.result.data.json.boardId }})"
-      - "database: {{ homarr_molecule_database_path }}"
+      - "Homarr systemd: {{ homarr_service.status.ActiveState }}"
+      - "Homarr health: database {{ homarr_health_report.healthChecks.database.status }}, redis {{ homarr_health_report.healthChecks.redis.status }}"
+      - "Homarr onboarding: {{ homarr_onboarding_before.json.result.data.json.current }} -> {{ homarr_onboarding_after.json.result.data.json.current }}"
+      - "Homarr version: {{ homarr_info.json.result.data.json.version }}"
+      - "Homarr board round trip: {{ homarr_molecule_board_name }} ({{ homarr_board_created.json.result.data.json.boardId }})"
+      - "Homarr database: {{ homarr_molecule_database_path }}"
