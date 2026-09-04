@@ -28,17 +28,17 @@
 # converge that did so would leave nothing for the negative control to prove.
 
 ---
-- name: Include the role's default variables under a separate name
+# The role is not included in this playbook, so its defaults are not in
+# scope. Reading defaults/main.yml directly ties the version assertion
+# below.
+- name: Load the role defaults
   ansible.builtin.include_vars:
-    # Only leaf values may be read out of this - anything defined in terms of
-    # another variable would be looked up in the surrounding scope, where the
-    # role's variables do not exist. `homarr_version` is a literal.
     file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
-    name: homarr_role_defaults
+    name: homarr_defaults
 
 - name: Set Homarr verification facts
   ansible.builtin.set_fact:
-    homarr_molecule_expected_version: "{{ homarr_role_defaults.homarr_version | regex_replace('^v', '') }}"
+    homarr_molecule_expected_version: "{{ homarr_defaults.homarr_version | regex_replace('^v', '') }}"
     # The role bind-mounts `homarr_data_path` at /appdata inside the container,
     # so whatever file name `homarr_database_url` names shows up here.
     homarr_molecule_database_path: "{{ homarr_data_path }}/{{ homarr_database_url | basename }}"
