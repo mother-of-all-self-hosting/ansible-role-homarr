@@ -560,7 +560,7 @@
       The database records the finished onboarding, the one administrator and the
       board this suite created
 
-- name: Show Homarr verification summary
+- name: Show the Homarr verification summary
   vars:
     homarr_health_report: "{{ homarr_health.content | from_json }}"
   ansible.builtin.debug:
