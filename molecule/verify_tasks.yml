@@ -38,7 +38,6 @@
 
 - name: Set Homarr verification facts
   ansible.builtin.set_fact:
-    homarr_molecule_expected_version: "{{ homarr_defaults.homarr_version | regex_replace('^v', '') }}"
     # The role bind-mounts `homarr_data_path` at /appdata inside the container,
     # so whatever file name `homarr_database_url` names shows up here.
     homarr_molecule_database_path: "{{ homarr_data_path }}/{{ homarr_database_url | basename }}"
@@ -386,20 +385,11 @@
     follow_redirects: none
   register: homarr_info
 
-- name: Assert that Homarr is the version defaults/main.yml pins
+- name: Assert the running Homarr is the version this role installs
   ansible.builtin.assert:
-    that:
-      - homarr_info.json.result.data.json.version is string
-      - homarr_info.json.result.data.json.version.startswith(homarr_molecule_expected_version)
-      # Proof that the comparison above discriminates: the same check against a
-      # version nobody has ever released has to fail.
-      - not homarr_info.json.result.data.json.version.startswith('0.0.0-never-released')
-    fail_msg: >-
-      Homarr reports version {{ homarr_info.json.result.data.json.version | default('nothing') }},
-      but defaults/main.yml pins {{ homarr_molecule_expected_version }}
-    success_msg: >-
-      Homarr reports version {{ homarr_info.json.result.data.json.version }},
-      matching the {{ homarr_molecule_expected_version }} defaults/main.yml pins
+    that: "homarr_info.json.result.data.json.version == homarr_defaults.homarr_version | regex_replace('^v', '')"
+    fail_msg: "Homarr reports {{ homarr_info.json.result.data.json.version | default('none') }}, expected {{ homarr_defaults.homarr_version }}"
+    success_msg: "Homarr reports {{ homarr_info.json.result.data.json.version }}"
 
 ########################################################################
 #                                                                      #
