@@ -15,18 +15,18 @@
         - name: Run the shared Homarr verification tasks
           ansible.builtin.include_tasks: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/molecule/verify_tasks.yml"
       rescue:
-        # Whatever went wrong, the reason is almost always in the service log,
+        # Whatever went wrong, the reason is almost always in the systemd service log,
         # and nobody reading a failed CI run has a container left to look in.
-        - name: Retrieve the Homarr service log
+        - name: Retrieve the Homarr systemd service log
           ansible.builtin.command:
             cmd: journalctl --no-pager -xeu homarr.service
           register: homarr_service_log
           changed_when: false
 
-        - name: Show the Homarr service log
+        - name: Show the Homarr systemd service log
           ansible.builtin.debug:
             var: homarr_service_log.stdout_lines
 
         - name: Fail because verification did not pass
           ansible.builtin.fail:
-            msg: "Homarr verification failed. The service log is printed above."
+            msg: "Homarr verification failed. The systemd service log is printed above."
