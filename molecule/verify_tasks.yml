@@ -375,7 +375,7 @@
 #                                                                      #
 ########################################################################
 
-- name: Ask Homarr which version it is
+- name: Query the version of the running Homarr
   ansible.builtin.uri:
     url: "{{ homarr_molecule_base_url }}/api/trpc/info.getInfo"
     method: GET
