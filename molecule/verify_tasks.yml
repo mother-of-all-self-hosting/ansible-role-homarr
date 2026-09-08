@@ -42,7 +42,7 @@
     # so whatever file name `homarr_database_url` names shows up here.
     homarr_molecule_database_path: "{{ homarr_data_path }}/{{ homarr_database_url | basename }}"
 
-- name: Wait for the Homarr systemd service to become active
+- name: Wait for the Homarr systemd service to become active (up to 180s)
   ansible.builtin.systemd_service:
     name: homarr.service
   register: homarr_service
