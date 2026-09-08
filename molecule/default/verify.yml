@@ -19,7 +19,7 @@
         # and nobody reading a failed CI run has a container left to look in.
         - name: Retrieve the Homarr systemd service log
           ansible.builtin.command:
-            cmd: journalctl --no-pager -xeu homarr.service
+            cmd: journalctl --no-pager --output=cat --unit=homarr.service
           register: homarr_service_log
           changed_when: false
 
