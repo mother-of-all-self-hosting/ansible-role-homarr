@@ -36,19 +36,14 @@
     file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
     name: homarr_defaults
 
-- name: Set Homarr verification facts
-  ansible.builtin.set_fact:
-    # The role bind-mounts `homarr_data_path` at /appdata inside the container,
-    # so whatever file name `homarr_database_url` names shows up here.
-    homarr_molecule_database_path: "{{ homarr_data_path }}/{{ homarr_database_url | basename }}"
-
-- name: Wait for the Homarr systemd service to become active (up to 180s)
+- name: Wait for the Homarr systemd services to become active (up to 180s each)
   ansible.builtin.systemd_service:
-    name: homarr.service
-  register: homarr_service
-  until: homarr_service.status.ActiveState == 'active'
+    name: "{{ item }}"
+  register: homarr_services
+  until: homarr_services.status.ActiveState == 'active'
   retries: 36
   delay: 5
+  loop: "{{ homarr_verify_units }}"
   # So that giving up is reported by the assertion below rather than as a
   # wall of systemd unit properties.
   failed_when: false
@@ -56,11 +51,20 @@
 # `Restart=always` in the systemd unit means that even a container which crashes
 # and gets restarted reads as active here, so this is a precondition rather than
 # a result.
-- name: Assert the Homarr systemd service is active
+- name: Assert the Homarr systemd services are active
   ansible.builtin.assert:
-    that: homarr_service.status.ActiveState == 'active'
-    fail_msg: "homarr.service is not active ({{ homarr_service.status.ActiveState }})"
-    success_msg: "homarr.service is active"
+    that: homarr_services.results | map(attribute='status.ActiveState') | unique | list == ['active']
+    fail_msg: >-
+      Not every service is active:
+      {{ dict(homarr_verify_units | zip(homarr_services.results | map(attribute='status.ActiveState'))) }}
+    success_msg: "Every systemd service is active"
+
+- name: Retrieve the Homarr systemd services log for debugging
+  when: homarr_debug_service_enabled | bool
+  ansible.builtin.command:
+    cmd: "journalctl --no-pager --output=cat --unit={{ item }}"
+  changed_when: false
+  loop: "{{ homarr_verify_units }}"
 
 # systemd reporting the service as active only means `docker start` has not
 # returned yet. Homarr runs its database migrations, seeds itself and then
@@ -480,6 +484,12 @@
 #                                                                      #
 ########################################################################
 
+- name: Set Homarr verification facts
+  ansible.builtin.set_fact:
+    # The role bind-mounts `homarr_data_path` at /appdata inside the container,
+    # so whatever file name `homarr_database_url` names shows up here.
+    homarr_molecule_database_path: "{{ homarr_data_path }}/{{ homarr_database_url | basename }}"
+
 # Reading the database from the host proves three things at once: that
 # `homarr_database_url` reached the application, that the bind mount the
 # systemd unit sets up is the directory the application writes to, and that
@@ -561,7 +571,7 @@
     homarr_health_report: "{{ homarr_health.content | from_json }}"
   ansible.builtin.debug:
     msg:
-      - "Homarr systemd: {{ homarr_service.status.ActiveState }}"
+      - "Homarr systemd: {% for unit, state in homarr_verify_units | zip(homarr_services.results | map(attribute='status.ActiveState')) %}{{ unit }} ({{ state }}){% if not loop.last %}, {% endif %}{% endfor %}"
       - "Homarr health: database {{ homarr_health_report.healthChecks.database.status }}, redis {{ homarr_health_report.healthChecks.redis.status }}"
       - "Homarr onboarding: {{ homarr_onboarding_before.json.result.data.json.current }} -> {{ homarr_onboarding_after.json.result.data.json.current }}"
       - "Homarr version: {{ homarr_info.json.result.data.json.version }}"

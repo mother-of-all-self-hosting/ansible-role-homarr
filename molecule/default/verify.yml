@@ -9,6 +9,11 @@
   hosts: all
   become: true
   gather_facts: false
+
+  vars:
+    homarr_verify_units:
+      - homarr.service
+
   tasks:
     - name: Verify that Homarr works
       block:
