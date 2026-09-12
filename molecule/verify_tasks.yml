@@ -71,7 +71,7 @@
 # boots Next.js, which takes minutes on the storage driver Molecule uses.
 # /api/health/live is the deep check: it queries the database and pings the
 # embedded Redis, and answers 500 if either is unreachable.
-- name: Wait for Homarr to report itself healthy
+- name: Wait for Homarr to report itself healthy (up to 180s)
   ansible.builtin.uri:
     url: "{{ homarr_molecule_base_url }}/api/health/live"
     method: GET
@@ -82,10 +82,13 @@
     return_content: true
   register: homarr_health
   until: homarr_health.status == 200
-  retries: 120
+  retries: 36
   delay: 5
+  # So that giving up is reported by the assertion below rather than as a
+  # wall of systemd unit properties.
+  failed_when: false
 
-- name: Assert that Homarr can reach its database and its Redis
+- name: Assert Homarr reports its database and its Redis healthy
   vars:
     homarr_health_report: "{{ homarr_health.content | from_json }}"
   ansible.builtin.assert:
@@ -93,8 +96,8 @@
       - homarr_health_report.status == 'healthy'
       - homarr_health_report.healthChecks.database.status == 'healthy'
       - homarr_health_report.healthChecks.redis.status == 'healthy'
-    fail_msg: "Homarr is up but unhealthy: {{ homarr_health.content | default('no body') }}"
-    success_msg: "Homarr reports its database and Redis as healthy"
+    fail_msg: "Homarr did not report itself healthy: {{ homarr_health.content | default('no response') }}"
+    success_msg: "Homarr reports itself, its database and Redis healthy"
 
 ########################################################################
 #                                                                      #
