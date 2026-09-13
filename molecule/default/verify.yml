@@ -19,6 +19,7 @@
       block:
         - name: Run the shared Homarr verification tasks
           ansible.builtin.include_tasks: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/molecule/verify_tasks.yml"
+
       rescue:
         # Whatever went wrong, the reason is almost always in the systemd service log.
         - name: Retrieve the Homarr systemd service log
