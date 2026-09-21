@@ -46,12 +46,9 @@
 - name: Fail if Homarr encryption key is not 64 hexadecimal characters
   ansible.builtin.fail:
     msg: >-
-      homarr_environment_variables_secret_encryption_key must be exactly 64 hexadecimal characters
-      (that is, 32 bytes in hex), which is what `openssl rand -hex 32` produces.
-      Homarr refuses to start its background task and websocket services with any other value,
-      and then answers every request with an HTTP 500 - while the container keeps running and the
-      systemd service keeps looking healthy.
-  when: "not (homarr_environment_variables_secret_encryption_key | string is match('^[0-9a-fA-F]{64}$'))"
+      homarr_environment_variables_secret_encryption_key needs to be 64 hexadecimal characters.
+      The value can be generated with `openssl rand -hex 32` or in another way.
+  when: homarr_environment_variables_secret_encryption_key is not match('^[0-9a-fA-F]{64}$')
 
 - name: Fail if Homarr database type is invalid
   ansible.builtin.fail:
