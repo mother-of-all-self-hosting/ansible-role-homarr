@@ -40,9 +40,7 @@
     - homarr_environment_variables_secret_encryption_key
 
 # Homarr validates SECRET_ENCRYPTION_KEY itself, but only after the container has already
-# started, and it does not stop the container over it. The result is a service which systemd
-# happily reports as `active` while every single HTTP request it serves is a 500. Catching the
-# bad value here turns that into a failed playbook run with an actionable message.
+# started, and it does not stop the container over it.
 - name: Fail if Homarr encryption key is not 64 hexadecimal characters
   ansible.builtin.fail:
     msg: >-
