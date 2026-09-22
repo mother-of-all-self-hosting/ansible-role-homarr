@@ -33,7 +33,7 @@ To run a Homarr instance it is necessary to prepare a database. You can use a [M
 If you are looking for an Ansible role for Postgres, you can check out [ansible-role-postgres](https://github.com/mother-of-all-self-hosting/ansible-role-postgres) maintained by the [Mother-of-All-Self-Hosting (MASH)](https://github.com/mother-of-all-self-hosting) team.
 
 >[!NOTE]
-> Currently (as of v1.17.0) MariaDB is not supported but planned. See [this issue at GitHub](https://github.com/homarr-labs/homarr/issues/2305) for the latest information.
+> Currently (as of v1.17.0) MariaDB is not supported but planned. Refer to [this issue at GitHub](https://github.com/homarr-labs/homarr/issues/2305) for the latest information.
 
 ## Adjusting the playbook configuration
 
@@ -128,7 +128,7 @@ Take a look at:
 
 - [`defaults/main.yml`](../defaults/main.yml) for some variables that you can customize via your `vars.yml` file. You can override settings (even those that don't have dedicated playbook variables) using the `homarr_environment_variables_additional_variables` variable
 
-See [the official documentation](https://homarr.dev/docs/advanced/environment-variables/) for a complete list of Homarr's config options that you can put in `homarr_environment_variables_additional_variables`.
+Refer to [the official documentation](https://homarr.dev/docs/advanced/environment-variables/) for a complete list of Homarr's config options that you can put in `homarr_environment_variables_additional_variables`.
 
 ## Installing
 
@@ -144,7 +144,7 @@ If you use the MASH playbook, the shortcut commands with the [`just` program](ht
 
 After running the command for installation, Homarr becomes available at the specified hostname like `https://example.com`.
 
-You can open the page with a web browser to start the onboarding process. See [this official guide](https://homarr.dev/docs/getting-started/after-the-installation/) for details.
+You can open the page with a web browser to start the onboarding process. Refer to [this official guide](https://homarr.dev/docs/getting-started/after-the-installation/) for details.
 
 ## Troubleshooting
 
