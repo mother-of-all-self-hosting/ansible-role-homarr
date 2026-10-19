@@ -236,7 +236,7 @@ homarr_container_cleanup_command: |
 
 # Specify a database driver to use
 # Valid values: mysql, postgres, sqlite
-homarr_database_type: sqlite
+homarr_database_type: ""
 
 # Specify database configuration
 homarr_database_url: '/appdata/db.sqlite'

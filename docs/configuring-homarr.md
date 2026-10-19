@@ -28,7 +28,7 @@ See the project's [documentation](https://homarr.dev/docs/getting-started) to le
 
 ## Prerequisites
 
-To run a Homarr instance it is necessary to prepare a database. You can use a [MySQL](https://www.mysql.com/), [Postgres](https://www.postgresql.org/), or [SQLite](https://www.sqlite.org/). By default it is configured to use SQLite.
+To run a Homarr instance it is necessary to prepare a database. You can use a [MySQL](https://www.mysql.com/), [Postgres](https://www.postgresql.org/), or [SQLite](https://www.sqlite.org/).
 
 If you are looking for an Ansible role for Postgres, you can check out [ansible-role-postgres](https://github.com/mother-of-all-self-hosting/ansible-role-postgres) maintained by the [Mother-of-All-Self-Hosting (MASH)](https://github.com/mother-of-all-self-hosting) team.
 
@@ -82,9 +82,9 @@ homarr_environment_variables_secret_encryption_key: YOUR_SECRET_KEY_HERE
 
 ### Configuring database
 
-#### Specify database (optional)
+#### Specify database
 
-You can specify a database used by Homarr. By default it is configured to use SQLite. The SQLite database is stored in the directory specified with `homarr_data_path`.
+Homarr can use either a MySQL compatible database, Postgres, or SQLite, and you need to choose one.
 
 To use Postgres, add the following configuration to your `vars.yml` file:
 
@@ -92,9 +92,12 @@ To use Postgres, add the following configuration to your `vars.yml` file:
 homarr_database_type: postgres
 ```
 
-Set `mysql2` to use a MySQL compatible database via [MySQL2](https://sidorares.github.io/node-mysql2/docs), a MySQL client for Node.js.
+Set `mysql` to use a MySQL compatible database and `sqlite` to use SQLite, respectively. The SQLite database is stored in the directory specified with `homarr_data_path`.
 
 For other settings, check variables such as `homarr_database_mysql_*` and `homarr_database_postgres_*` on [`defaults/main.yml`](../defaults/main.yml).
+
+>[!NOTE]
+> If you (or your playbook) have not specified a MySQL compatible database or Postgres explicitly, the database for your existing installation is most likely to be `sqlite`.
 
 #### Configuring connection to the database server (optional)
 
