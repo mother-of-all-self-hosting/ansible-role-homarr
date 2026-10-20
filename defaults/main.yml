@@ -297,6 +297,12 @@ homarr_environment_variables_secret_encryption_key: ""
 # Specify log level
 homarr_environment_variables_log_level: info
 
+# Specify the canonical public URL (origin without a path) at which Homarr is served.
+# Homarr uses it for MCP OAuth metadata, origin checks and secure cookies.
+# It is needed when Homarr runs behind a reverse proxy which terminates TLS.
+# See: https://homarr.dev/docs/advanced/proxy
+homarr_environment_variables_base_url: "{{ homarr_scheme }}://{{ homarr_hostname }}"
+
 # Specify path to store trusted certificates during development
 homarr_environment_variables_local_certificate_path: ""
 
