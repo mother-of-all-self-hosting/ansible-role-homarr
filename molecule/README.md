@@ -69,7 +69,7 @@ Homarr is a Next.js application, and it renders a page for very nearly any path 
 
 On top of that it waits on `/api/health/live`, which is the deep health check — it answers `500` unless Homarr can reach both its database and its Redis — asserts that the version the running instance reports matches the one `defaults/main.yml` pins, and cross-checks the whole story against the SQLite database the role bind-mounted into the container.
 
-Two assertions are deliberately made to fail on purpose, because they would otherwise prove nothing: a login with the wrong password (Auth.js answers a rejected login with the same `302` it answers an accepted one with, so only the absence of a session cookie distinguishes them), and the version comparison against a version that has never been released.
+Two assertions are deliberately made to fail on purpose, because they would otherwise prove nothing: a login with the wrong password (Auth.js answers a rejected login with the same `302` it answers an accepted one with, so only the absence of a session cookie distinguishes them), and the version comparison against a version that has never been released. Advancing the onboarding wizard without the onboarding claim cookie is likewise required to be refused with a `403`, since the claim is what lets the first administrator be created before any session exists.
 
 The onboarding wizard is completed from `verify.yml`, never from `converge.yml`. Walking a user through a setup wizard is not the role's job, and a converge which did it would leave the negative control with nothing to establish.
 

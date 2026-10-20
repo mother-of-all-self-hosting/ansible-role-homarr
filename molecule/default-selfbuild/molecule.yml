@@ -68,6 +68,7 @@ provisioner:
         homarr_molecule_admin_username: molecule
         homarr_molecule_admin_password: molecule-first-administrator
         homarr_molecule_board_name: molecule-round-trip
+        homarr_molecule_onboarding_board_name: molecule-onboarding
 
         # Test self-building
         homarr_container_image_self_build: true

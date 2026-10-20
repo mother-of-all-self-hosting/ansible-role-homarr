@@ -68,6 +68,7 @@ provisioner:
         homarr_molecule_admin_username: molecule
         homarr_molecule_admin_password: molecule-first-administrator
         homarr_molecule_board_name: molecule-round-trip
+        homarr_molecule_onboarding_board_name: molecule-onboarding
   env:
     # Workaround for https://github.com/ansible/molecule/issues/4391
     ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..:/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:~/.ansible/roles

@@ -174,14 +174,47 @@
 
 ########################################################################
 #                                                                      #
-# completing the onboarding wizard                                     #
+# starting the onboarding wizard                                       #
 #                                                                      #
 ########################################################################
 
 # Homarr has no environment variable and no CLI command that skips onboarding.
-# The wizard's own procedures are the sanctioned way through it: they are
-# public procedures gated on the recorded step rather than on a session,
-# precisely so that the first administrator can be created before one exists.
+# The wizard's own procedures are the sanctioned way through it. Before an
+# administrator exists, they are gated on an onboarding claim rather than on a
+# session: whoever claims onboarding first gets a cookie, and only requests
+# carrying that cookie may move the wizard on, until the claim expires.
+- name: Claim Homarr's onboarding
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/onboarding/claim"
+    method: POST
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_onboarding_claim
+
+- name: Take the onboarding claim out of Homarr's cookie jar
+  ansible.builtin.set_fact:
+    homarr_molecule_onboarding_claim_cookie: "{{ homarr_onboarding_claim.cookies['homarr-onboarding-claim'] | default('') }}"
+
+- name: Assert that Homarr issued an onboarding claim
+  ansible.builtin.assert:
+    that:
+      - homarr_onboarding_claim.json.status == 'issued'
+      - homarr_molecule_onboarding_claim_cookie | length > 0
+    fail_msg: "Homarr did not issue an onboarding claim: {{ homarr_onboarding_claim.json | default('') }}"
+    success_msg: "Homarr issued an onboarding claim"
+
+# The claim is what lets the steps below through, so a request without it
+# has to be turned away. Otherwise the claim would be proving nothing.
+- name: Try to advance Homarr's onboarding wizard without the claim
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.nextStep"
+    method: POST
+    body_format: json
+    body:
+      json: {}
+    status_code: [403]
+    follow_redirects: none
+
 - name: Advance Homarr's onboarding wizard to the step that creates the first user
   ansible.builtin.uri:
     url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.nextStep"
@@ -189,6 +222,8 @@
     body_format: json
     body:
       json: {}
+    headers:
+      Cookie: "homarr-onboarding-claim={{ homarr_molecule_onboarding_claim_cookie }}"
     status_code: [200]
     follow_redirects: none
 
@@ -219,6 +254,8 @@
         username: "{{ homarr_molecule_admin_username }}"
         password: "{{ homarr_molecule_admin_password }}"
         confirmPassword: "{{ homarr_molecule_admin_password }}"
+    headers:
+      Cookie: "homarr-onboarding-claim={{ homarr_molecule_onboarding_claim_cookie }}"
     status_code: [200]
     follow_redirects: none
   register: homarr_init_user
@@ -229,57 +266,21 @@
     fail_msg: "Homarr rejected the first administrator: {{ homarr_init_user.json.error | default('') }}"
     success_msg: "Homarr created the first administrator"
 
-# Creating the user moves the wizard on by itself; what is left are the
-# settings and integrations steps, neither of which needs an answer from us.
-- name: Walk Homarr's onboarding wizard to its end
-  ansible.builtin.uri:
-    url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.nextStep"
-    method: POST
-    body_format: json
-    body:
-      json: {}
-    status_code: [200]
-    follow_redirects: none
-  loop: "{{ range(0, 4) | list }}"
-  loop_control:
-    label: "step {{ item + 1 }}"
-
-- name: Read the onboarding step after finishing the wizard
+- name: Read the onboarding step Homarr moved to after creating the first user
   ansible.builtin.uri:
     url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.currentStep"
     method: GET
     status_code: [200]
     follow_redirects: none
-  register: homarr_onboarding_after
+  register: homarr_onboarding_setup_step
 
-- name: Assert that the onboarding state Homarr reports has flipped
+- name: Assert that Homarr moved on to the setup step
   ansible.builtin.assert:
-    that: homarr_onboarding_after.json.result.data.json.current == 'finish'
+    that: homarr_onboarding_setup_step.json.result.data.json.current == 'setup'
     fail_msg: >-
-      The wizard ended at '{{ homarr_onboarding_after.json.result.data.json.current }}'
-      rather than 'finish'
-    success_msg: "Homarr's onboarding is finished, where it read 'start' before"
-
-- name: Ask the onboarded Homarr for the pages it used to refuse
-  ansible.builtin.uri:
-    url: "{{ homarr_molecule_base_url }}{{ item }}"
-    method: GET
-    status_code: [200]
-    follow_redirects: none
-  register: homarr_gated_pages_after
-  loop:
-    - /
-    - /manage
-    - /boards/dashboard
-
-- name: Assert that the pages which redirected to the wizard now render
-  ansible.builtin.assert:
-    that: item.status == 200
-    fail_msg: "{{ item.item }} answered {{ item.status }} after onboarding"
-    success_msg: "{{ item.item }} renders now that onboarding is done, where it redirected before"
-  loop: "{{ homarr_gated_pages_after.results }}"
-  loop_control:
-    label: "{{ item.item }}"
+      The wizard moved to '{{ homarr_onboarding_setup_step.json.result.data.json.current }}'
+      instead of 'setup'
+    success_msg: "The wizard is at the 'setup' step"
 
 ########################################################################
 #                                                                      #
@@ -361,6 +362,72 @@
       - homarr_login.url | default('') is not search('/auth/login')
     fail_msg: "Homarr issued no session cookie; the login ended up at {{ homarr_login.url | default('nowhere') }}"
     success_msg: "Homarr issued a session cookie for the administrator"
+
+########################################################################
+#                                                                      #
+# finishing the onboarding wizard                                      #
+#                                                                      #
+########################################################################
+
+# Once an administrator exists, the onboarding claim no longer opens anything:
+# the rest of the wizard takes the administrator's session. Its last step
+# applies the server settings and creates the first board in one go.
+- name: Complete Homarr's onboarding wizard
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.completeSetup"
+    method: POST
+    body_format: json
+    body:
+      json:
+        server:
+          defaultLocale: en
+          defaultColorScheme: auto
+        board:
+          name: "{{ homarr_molecule_onboarding_board_name }}"
+          primaryColor: "#fa5252"
+          secondaryColor: "#fd7e14"
+          itemRadius: lg
+    headers:
+      Cookie: "homarr.session-token={{ homarr_molecule_session_cookie }}"
+    status_code: [200]
+    follow_redirects: none
+
+- name: Read the onboarding step after finishing the wizard
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}/api/trpc/onboard.currentStep"
+    method: GET
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_onboarding_after
+
+- name: Assert that the onboarding state Homarr reports has flipped
+  ansible.builtin.assert:
+    that: homarr_onboarding_after.json.result.data.json.current == 'finish'
+    fail_msg: >-
+      The wizard ended at '{{ homarr_onboarding_after.json.result.data.json.current }}'
+      rather than 'finish'
+    success_msg: "Homarr's onboarding is finished, where it read 'start' before"
+
+- name: Ask the onboarded Homarr for the pages it used to refuse
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}{{ item }}"
+    method: GET
+    status_code: [200]
+    follow_redirects: none
+  register: homarr_gated_pages_after
+  loop:
+    - /
+    - /manage
+    - /boards/dashboard
+
+- name: Assert that the pages which redirected to the wizard now render
+  ansible.builtin.assert:
+    that: item.status == 200
+    fail_msg: "{{ item.item }} answered {{ item.status }} after onboarding"
+    success_msg: "{{ item.item }} renders now that onboarding is done, where it redirected before"
+  loop: "{{ homarr_gated_pages_after.results }}"
+  loop_control:
+    label: "{{ item.item }}"
 
 - name: Ask the onboarded Homarr, as the administrator, for the data it refused anonymously
   ansible.builtin.uri:
@@ -563,11 +630,11 @@
       - homarr_database_contents.onboarding | length == 1
       - homarr_database_contents.onboarding[0].step == 'finish'
       - homarr_database_contents.users == [homarr_molecule_admin_username]
-      - homarr_molecule_board_name in homarr_database_contents.boards
+      - homarr_database_contents.boards | sort == [homarr_molecule_onboarding_board_name, homarr_molecule_board_name] | sort
     fail_msg: "Homarr's database says {{ homarr_database_contents }}"
     success_msg: >-
       The database records the finished onboarding, the one administrator and the
-      board this suite created
+      boards this suite created
 
 - name: Verify nothing was quietly restarting while all of that was being checked
   when: "homarr_restarts_check_enabled | bool"
