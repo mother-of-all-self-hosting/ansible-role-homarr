@@ -28,12 +28,14 @@ See the project's [documentation](https://homarr.dev/docs/getting-started) to le
 
 ## Prerequisites
 
-To run a Homarr instance it is necessary to prepare a database. You can use a [MySQL](https://www.mysql.com/), [Postgres](https://www.postgresql.org/), or [SQLite](https://www.sqlite.org/).
+To run a Homarr instance it is necessary to prepare a database. You can use a [Postgres](https://www.postgresql.org/) or [SQLite](https://www.sqlite.org/).
 
 If you are looking for an Ansible role for Postgres, you can check out [ansible-role-postgres](https://github.com/mother-of-all-self-hosting/ansible-role-postgres) maintained by the [Mother-of-All-Self-Hosting (MASH)](https://github.com/mother-of-all-self-hosting) team.
 
->[!NOTE]
-> Currently (as of v1.17.0) MariaDB is not supported but planned. Refer to [this issue at GitHub](https://github.com/homarr-labs/homarr/issues/2305) for the latest information.
+MySQL (and MariaDB) is no longer supported since Homarr v2. If your existing installation uses MySQL, you need to convert the database to SQLite before upgrading. Refer to [the official documentation](https://homarr.dev/docs/advanced/mysql-to-sqlite) for details.
+
+>[!WARNING]
+> Upgrading from Homarr v1 to v2 migrates the existing database in place, and v1 cannot use the upgraded database. Before upgrading, stop Homarr and back up the directory specified with `homarr_data_path` (and the Postgres database, if you use it). Refer to [the official documentation](https://homarr.dev/docs/getting-started/installation/docker#update) for details.
 
 ## Adjusting the playbook configuration
 
@@ -84,7 +86,7 @@ homarr_environment_variables_secret_encryption_key: YOUR_SECRET_KEY_HERE
 
 #### Specify database
 
-Homarr can use either a MySQL compatible database, Postgres, or SQLite, and you need to choose one.
+Homarr can use either Postgres or SQLite, and you need to choose one.
 
 To use Postgres, add the following configuration to your `vars.yml` file:
 
@@ -92,17 +94,14 @@ To use Postgres, add the following configuration to your `vars.yml` file:
 homarr_database_type: postgres
 ```
 
-Set `mysql` to use a MySQL compatible database and `sqlite` to use SQLite, respectively. The SQLite database is stored in the directory specified with `homarr_data_path`.
+Set `sqlite` to use SQLite. The SQLite database is stored in the directory specified with `homarr_data_path`.
 
 For other settings, check variables such as `homarr_database_*` on [`defaults/main.yml`](../defaults/main.yml).
 
 >[!NOTE]
-> If you (or your playbook) have not specified a MySQL compatible database or Postgres explicitly, the database for your existing installation is most likely to be `sqlite`.
+> If you (or your playbook) have not specified Postgres explicitly, the database for your existing installation is most likely to be `sqlite`.
 
 #### Configuring connection to the database server (optional)
-
->[!NOTE]
-> The connection to the MySQL compatible database (MySQL2) via the Unix socket is not yet available.
 
 By default the role is configured to establish connection with the Postgres server via the Unix socket. You can mount the Unix socket by adding the following configuration to your `vars.yml` file:
 

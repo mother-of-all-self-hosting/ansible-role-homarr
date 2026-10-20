@@ -15,11 +15,15 @@
   with_items:
     - { "old": "homarr_environment_variables_db_driver", "new": "homarr_database_type" }
     - { "old": "homarr_environment_variables_db_url", "new": "homarr_database_url" }
-    - { "old": "homarr_environment_variables_db_host", "new": "homarr_database_mysql_hostname" }
-    - { "old": "homarr_environment_variables_db_hostname", "new": "homarr_database_mysql_hostname" }
-    - { "old": "homarr_environment_variables_db_port", "new": "homarr_database_mysql_port" }
-    - { "old": "homarr_environment_variables_db_user", "new": "homarr_database_mysql_username" }
-    - { "old": "homarr_environment_variables_db_password", "new": "homarr_database_mysql_password" }
+    - { "old": "homarr_environment_variables_db_host", "new": "<removed> (MySQL is no longer supported since Homarr v2)" }
+    - { "old": "homarr_environment_variables_db_hostname", "new": "<removed> (MySQL is no longer supported since Homarr v2)" }
+    - { "old": "homarr_environment_variables_db_port", "new": "<removed> (MySQL is no longer supported since Homarr v2)" }
+    - { "old": "homarr_environment_variables_db_user", "new": "<removed> (MySQL is no longer supported since Homarr v2)" }
+    - { "old": "homarr_environment_variables_db_password", "new": "<removed> (MySQL is no longer supported since Homarr v2)" }
+    - { "old": "homarr_database_mysql_hostname", "new": "<removed> (MySQL is no longer supported since Homarr v2)" }
+    - { "old": "homarr_database_mysql_port", "new": "<removed> (MySQL is no longer supported since Homarr v2)" }
+    - { "old": "homarr_database_mysql_username", "new": "<removed> (MySQL is no longer supported since Homarr v2)" }
+    - { "old": "homarr_database_mysql_password", "new": "<removed> (MySQL is no longer supported since Homarr v2)" }
     - { "old": "homarr_environment_variables_db_name", "new": "homarr_database_name" }
     - { "old": "homarr_http_header_content_permission_policy", "new": "homarr_http_header_permissions_policy" }
     - { "old": "homarr_container_image_force_pull", "new": "<removed> (the new community.docker.docker_image_pull module handles this natively)" }
@@ -49,20 +53,19 @@
       The value can be generated with `openssl rand -hex 32` or in another way.
   when: homarr_environment_variables_secret_encryption_key is not match('^[0-9a-fA-F]{64}$')
 
+- name: Fail if Homarr database type is MySQL
+  ansible.builtin.fail:
+    msg: >-
+      MySQL (and MariaDB) is no longer supported since Homarr v2, so `homarr_database_type` cannot be `mysql` anymore.
+      Convert your database to SQLite before upgrading (see https://homarr.dev/docs/advanced/mysql-to-sqlite),
+      then set `homarr_database_type` to `sqlite`.
+  when: "homarr_database_type == 'mysql'"
+
 - name: Fail if Homarr database type is invalid
   ansible.builtin.fail:
     msg: >-
-      homarr_database_type must be 'mysql', 'postgres', or 'sqlite'
-  when: "homarr_database_type not in ['postgres', 'mysql', 'sqlite']"
-
-- name: Fail if required Homarr + MySQL integration settings not defined
-  ansible.builtin.fail:
-    msg: >-
-      You need to define a required configuration setting (`{{ item }}`) when `homarr_database_type` is `mysql`
-  when: "homarr_database_type == 'mysql' and lookup('vars', item, default='') | string | length == 0"
-  with_items:
-    - homarr_database_mysql_hostname
-    - homarr_database_mysql_password
+      homarr_database_type must be 'postgres' or 'sqlite'
+  when: "homarr_database_type not in ['postgres', 'sqlite']"
 
 - name: Run if Homarr + Postgres integration is enabled
   when: homarr_database_type == 'postgres'

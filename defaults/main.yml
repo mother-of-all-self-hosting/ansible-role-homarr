@@ -235,15 +235,14 @@ homarr_container_cleanup_command: |
 ########################################################################
 
 # Specify a database driver to use
-# Valid values: mysql, postgres, sqlite
+# Valid values: postgres, sqlite
+#
+# MySQL (and MariaDB) is no longer supported since Homarr v2.
+# See: https://homarr.dev/docs/advanced/mysql-to-sqlite
 homarr_database_type: ""
 
 # Specify database configuration
 homarr_database_url: '/appdata/db.sqlite'
-homarr_database_mysql_hostname: ""
-homarr_database_mysql_port: 3306
-homarr_database_mysql_username: username
-homarr_database_mysql_password: ""
 homarr_database_postgres_hostname: ""
 homarr_database_postgres_port: 5432
 homarr_database_postgres_username: homarr
