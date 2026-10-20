@@ -94,7 +94,7 @@ homarr_database_type: postgres
 
 Set `mysql` to use a MySQL compatible database and `sqlite` to use SQLite, respectively. The SQLite database is stored in the directory specified with `homarr_data_path`.
 
-For other settings, check variables such as `homarr_database_mysql_*` and `homarr_database_postgres_*` on [`defaults/main.yml`](../defaults/main.yml).
+For other settings, check variables such as `homarr_database_*` on [`defaults/main.yml`](../defaults/main.yml).
 
 >[!NOTE]
 > If you (or your playbook) have not specified a MySQL compatible database or Postgres explicitly, the database for your existing installation is most likely to be `sqlite`.
