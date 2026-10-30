@@ -62,7 +62,8 @@ Homarr is a Next.js application, and it renders a page for very nearly any path 
 | | before | after |
 | --- | --- | --- |
 | `onboard.currentStep` | `start` | `finish` |
-| `/`, `/manage`, `/boards/dashboard` | `307` to `/init` | `200` |
+| `/`, `/manage`, `/boards/molecule-onboarding` | `307` to `/init` | `200` (with a session) |
+| `/`, `/boards/molecule-onboarding` without a session | `307` to `/init` | `307` to `/auth/login` |
 | `user.getAll`, `info.getInfo` without a session | `401` | `200` (with a session) |
 | the private board the suite creates | does not exist | visible to its creator, invisible anonymously |
 | the `onboarding` row in SQLite | `start` | `finish` |

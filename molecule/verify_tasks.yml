@@ -141,7 +141,7 @@
   loop:
     - /
     - /manage
-    - /boards/dashboard
+    - "/boards/{{ homarr_molecule_onboarding_board_name }}"
 
 - name: Assert that an un-onboarded Homarr sends every page to the wizard
   ansible.builtin.assert:
@@ -408,17 +408,43 @@
       rather than 'finish'
     success_msg: "Homarr's onboarding is finished, where it read 'start' before"
 
-- name: Ask the onboarded Homarr for the pages it used to refuse
+# Onboarding creates a private home board. Anonymous requests must go to login,
+# while the administrator can render the board that was actually created.
+# Next.js can return a 200 loading shell before deciding to redirect or show a
+# missing board, so an arbitrary board name is not a useful rendering check.
+- name: Ask the onboarded Homarr for its private pages without a session
   ansible.builtin.uri:
     url: "{{ homarr_molecule_base_url }}{{ item }}"
     method: GET
+    status_code: [307]
+    follow_redirects: none
+  register: homarr_private_pages_anonymous
+  loop:
+    - /
+    - "/boards/{{ homarr_molecule_onboarding_board_name }}"
+
+- name: Assert that private pages send anonymous callers to login
+  ansible.builtin.assert:
+    that: item.location | default('') is search('/auth/login([?]|$)')
+    fail_msg: "{{ item.item }} did not redirect to login but to {{ item.location | default('nowhere') }}"
+    success_msg: "{{ item.item }} requires login now that onboarding is done"
+  loop: "{{ homarr_private_pages_anonymous.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Ask the onboarded Homarr as the administrator for the pages it used to refuse
+  ansible.builtin.uri:
+    url: "{{ homarr_molecule_base_url }}{{ item }}"
+    method: GET
+    headers:
+      Cookie: "homarr.session-token={{ homarr_molecule_session_cookie }}"
     status_code: [200]
     follow_redirects: none
   register: homarr_gated_pages_after
   loop:
     - /
     - /manage
-    - /boards/dashboard
+    - "/boards/{{ homarr_molecule_onboarding_board_name }}"
 
 - name: Assert that the pages which redirected to the wizard now render
   ansible.builtin.assert:
