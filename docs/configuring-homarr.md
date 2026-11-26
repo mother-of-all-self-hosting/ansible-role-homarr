@@ -8,10 +8,12 @@ SPDX-FileCopyrightText: 2020-2024 Slavi Pantaleev
 SPDX-FileCopyrightText: 2022 François Darveau
 SPDX-FileCopyrightText: 2022 Julian Foad
 SPDX-FileCopyrightText: 2022 Warren Bailey
+SPDX-FileCopyrightText: 2023 Alejandro AR
 SPDX-FileCopyrightText: 2023 Antonis Christofides
 SPDX-FileCopyrightText: 2023 Felix Stupp
 SPDX-FileCopyrightText: 2023 Julian-Samuel Gebühr
 SPDX-FileCopyrightText: 2023 Pierre 'McFly' Marty
+SPDX-FileCopyrightText: 2024 Sergio Durigan Junior
 SPDX-FileCopyrightText: 2024 Thomas Miceli
 SPDX-FileCopyrightText: 2024-2026 Suguru Hirahara
 
@@ -120,6 +122,20 @@ homarr_database_postgres_socket_enabled: false
 
 homarr_database_postgres_hostname: YOUR_POSTGRES_SERVER_HOSTNAME_HERE
 homarr_database_postgres_port: 5432
+```
+
+### Configuring trusted reverse proxies (optional)
+
+Homarr determines the actual client IP address from `X-Forwarded-For` headers only if the request comes from a trusted reverse proxy (refer to [`HOMARR_TRUSTED_PROXIES`](https://homarr.dev/docs/advanced/environment-variables/)).
+
+Since this role typically runs Homarr behind a reverse proxy (e.g. Traefik) on a container network, it trusts the loopback and all private (RFC1918) address ranges by default.
+
+To adjust the list of trusted proxies, add the following configuration to your `vars.yml` file (adapt to your needs):
+
+```yaml
+homarr_environment_variables_homarr_trusted_proxies:
+  - 127.0.0.0/8
+  - ::1/128
 ```
 
 ### Extending the configuration

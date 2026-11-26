@@ -283,6 +283,17 @@ homarr_docker_endpoint_is_unix_socket: "{{ homarr_docker_endpoint.startswith('un
 # Specify the timezone
 homarr_environment_variables_tz: UTC
 
+# Specify a comma-separated list of trusted proxy addresses
+#
+# The default below trusts the loopback and all private (RFC1918) address ranges,
+# which covers reverse proxies (e.g. Traefik) reaching Homarr over a local container network.
+homarr_environment_variables_homarr_trusted_proxies:
+  - 127.0.0.0/8
+  - ::1/128
+  - 10.0.0.0/8
+  - 172.16.0.0/12
+  - 192.168.0.0/16
+
 # Specify hostnames to connect to in a comma separated list
 # See: https://homarr.dev/docs/integrations/docker/#connecting-to-docker-via-socket-proxies
 homarr_environment_variables_docker_hostnames: ""
