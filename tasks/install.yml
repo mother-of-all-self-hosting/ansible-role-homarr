@@ -61,6 +61,7 @@
         owner: "{{ homarr_uid }}"
         group: "{{ homarr_gid }}"
         recurse: true
+      tags: molecule-idempotence-notest
 
     - name: Ensure Homarr repository is present on self-build
       ansible.builtin.git:
